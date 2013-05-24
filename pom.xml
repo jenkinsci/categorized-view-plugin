@@ -8,7 +8,7 @@
 
   <groupId>org.jenkins-ci.plugins</groupId>
   <artifactId>categorized-view</artifactId>
-  <version>1.0</version>
+  <version>1.0-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
   <!-- get every artifact through repo.jenkins-ci.org, which proxies all the artifacts that we need -->
@@ -34,7 +34,7 @@
   </developers>
   <scm>
     <connection>scm:git:ssh://github.com/jenkinsci/categorized-view-plugin.git</connection>
-    <developerConnection>scm:git:ssh://github.com/jenkinsci/categorized-view-plugin.git</developerConnection>
+    <developerConnection>scm:git:ssh://git@github.com/jenkinsci/categorized-view-plugin.git</developerConnection>
     <url>https://github.com/jenkinsci/categorized-view-plugin</url>
   </scm>
   <url>https://wiki.jenkins-ci.org/display/JENKINS/Categorized+Jobs+View</url>
