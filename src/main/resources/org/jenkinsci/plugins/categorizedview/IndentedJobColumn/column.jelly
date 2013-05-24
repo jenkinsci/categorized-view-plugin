@@ -1,0 +1,28 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
+	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form"
+	xmlns:i="jelly:fmt">
+		<st:once>
+			<script src="${rootURL}/plugin/categorized-view/sectionToggle.js"/>
+		</st:once>	
+		<j:choose>
+			<j:when test="${!view.hasLink(job)}">
+			<td style="${view.getCssFor(job)}">
+				<span id="handle_${view.getGroupClassFor(job)}" style='cursor: pointer' 
+					onClick="toggleJogGroupVisibility(this,'${view.getViewName()}','${view.getGroupClassFor(job)}')">
+					<img border="none" src="${rootURL}/plugin/categorized-view/images/collapsed.png"/> 
+					</span> 
+				${job.displayName}
+			</td>
+			<script type="text/javascript">
+				document.observe("dom:loaded", function() {
+					restoreJobGroupCollapseState("${view.getViewName()}", "${view.getGroupClassFor(job)}")
+				});
+			</script>
+			</j:when>
+			<j:when test="${view.hasLink(job)}">
+			<td style="${view.getCssFor(job)}" class="${view.getGroupClassFor(job)}">			
+				<a href="${jobBaseUrl}${job.shortUrl}">${job.displayName}</a>
+			</td>				
+			</j:when>
+		</j:choose>
+</j:jelly>

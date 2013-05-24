@@ -1,0 +1,13 @@
+<p>Specify a regular expression to build groups of jobs that will be categorized in the view.</p>
+<p>If you use parenthesis to specify a group, the name of the group will be the group match.<br/>
+If you don't specify any matching group, the whole expression will be used to build the 
+group name. If you just want to include specific jobs to specific labels without bothering with regular expressions,
+you just put the full job name in this field and the explicit label on the naming rule field.
+</p>
+<p>Examples: 
+<ul>
+<li>"a[0-9]+" The group match will be an 'a' followed by a number.</li>
+<li>"a([0-9]+) The group match will be a just a number.</li>
+<li>"^my job name|another job$" This will include just the specified jobs.</li>
+</ul>
+</p>

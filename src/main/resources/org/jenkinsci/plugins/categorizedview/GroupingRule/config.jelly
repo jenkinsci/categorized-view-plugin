@@ -1,0 +1,9 @@
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+	<f:entry title="${%Regex for categorization}" help="/plugin/categorized-view/groupNameExpression.html">
+		<f:textbox name="groupRegex" field="groupRegex" />
+	</f:entry>
+	<f:entry title="${%Naming Rule}"  help="/plugin/categorized-view/namingRule.html">
+		<f:textbox name="namingRule" field="namingRule"/>
+	</f:entry>
+	<f:entry title=""> <div align="right"> <f:repeatableDeleteButton /> </div> </f:entry>
+</j:jelly>

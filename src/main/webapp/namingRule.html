@@ -1,0 +1,14 @@
+<p>
+The naming rule allows you to control how to name the category groups. If left empty, 
+the groups will be named after the regular expression match (equivalent to filling with just $1). 
+But you can use any of the regex backreference markers to name your group. By default, 
+at least one group ($1) will be available. If you use any other grouping parenthesis, 
+those will be used as well.
+</p>
+<p> Examples:
+<ul>
+	<li>"Group $1" : the group names will have a leading "Group "</li>
+	<li>"$1 something" : the group names will be suffixed with " something"</li>
+	<li>"An specific label" : the group name will be "An specific label"</li>
+</ul>
+</p>
