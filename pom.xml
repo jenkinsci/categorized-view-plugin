@@ -33,9 +33,9 @@
     </developer>
   </developers>
   <scm>
-    <connection>scm:git:ssh://github.com/taksan/categorized-view-plugin.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/taksan/categorized-view-plugin.git</developerConnection>
-    <url>https://github.com/taksan/categorized-view-plugin</url>
+    <connection>scm:git:ssh://github.com/jenkinsci/categorized-view-plugin.git</connection>
+    <developerConnection>scm:git:ssh://github.com/jenkinsci/categorized-view-plugin.git</developerConnection>
+    <url>https://github.com/jenkinsci/categorized-view-plugin</url>
   </scm>
   <url>https://wiki.jenkins-ci.org/display/JENKINS/Categorized+Jobs+View</url>
 </project>
