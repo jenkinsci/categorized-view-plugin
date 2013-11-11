@@ -8,7 +8,7 @@
 			<j:when test="${!view.hasLink(job)}">
 			<td style="${view.getCssFor(job)}">
 				<span id="handle_${view.getGroupClassFor(job)}" style='cursor: pointer' 
-					onClick="toggleJogGroupVisibility(this,'${view.getViewName()}','${view.getGroupClassFor(job)}')">
+					onClick="toggleJobGroupVisibility(this,'${view.getViewName()}','${view.getGroupClassFor(job)}')">
 					<img border="none" src="${rootURL}/plugin/categorized-view/images/collapsed.png"/> 
 					</span> 
 				${job.displayName}

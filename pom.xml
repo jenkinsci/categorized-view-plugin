@@ -1,41 +1,71 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.jenkins-ci.plugins</groupId>
-    <artifactId>plugin</artifactId>
-    <version>1.480.3</version><!-- which version of Jenkins is this plugin built against? -->
-  </parent>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.jenkins-ci.plugins</groupId>
+		<artifactId>plugin</artifactId>
+		<version>1.480.3</version><!-- which version of Jenkins is this plugin built against? -->
+	</parent>
 
-  <groupId>org.jenkins-ci.plugins</groupId>
-  <artifactId>categorized-view</artifactId>
-  <version>1.1-SNAPSHOT</version>
-  <packaging>hpi</packaging>
+	<groupId>org.jenkins-ci.plugins</groupId>
+	<artifactId>categorized-view</artifactId>
+	<version>1.1-SNAPSHOT</version>
+	<packaging>hpi</packaging>
 
-  <!-- get every artifact through repo.jenkins-ci.org, which proxies all the artifacts that we need -->
-  <repositories>
-    <repository>
-      <id>repo.jenkins-ci.org</id>
-      <url>http://repo.jenkins-ci.org/public/</url>
-    </repository>
-  </repositories>
+	<!-- get every artifact through repo.jenkins-ci.org, which proxies all the artifacts that we need -->
+	<repositories>
+		<repository>
+			<id>repo.jenkins-ci.org</id>
+			<url>http://repo.jenkins-ci.org/public/</url>
+		</repository>
+	</repositories>
 
-  <pluginRepositories>
-    <pluginRepository>
-      <id>repo.jenkins-ci.org</id>
-      <url>http://repo.jenkins-ci.org/public/</url>
-    </pluginRepository>
-  </pluginRepositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>repo.jenkins-ci.org</id>
+			<url>http://repo.jenkins-ci.org/public/</url>
+		</pluginRepository>
+	</pluginRepositories>
 
-  <developers>
-    <developer>
-      <id>taksan</id>
-      <name>Gabriel Takeuchi</name>
-    </developer>
-  </developers>
-  <scm>
-    <connection>scm:git:ssh://github.com/jenkinsci/categorized-view-plugin.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/jenkinsci/categorized-view-plugin.git</developerConnection>
-    <url>https://github.com/jenkinsci/categorized-view-plugin</url>
-  </scm>
-  <url>https://wiki.jenkins-ci.org/display/JENKINS/Categorized+Jobs+View</url>
+	<developers>
+		<developer>
+			<id>taksan</id>
+			<name>Gabriel Takeuchi</name>
+		</developer>
+	</developers>
+	<scm>
+		<connection>scm:git:ssh://github.com/jenkinsci/categorized-view-plugin.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/jenkinsci/categorized-view-plugin.git</developerConnection>
+		<url>https://github.com/jenkinsci/categorized-view-plugin</url>
+	</scm>
+	<url>https://wiki.jenkins-ci.org/display/JENKINS/Categorized+Jobs+View</url>
+
+	<build>
+		<plugins>
+			<!--
+				attaches a zip to the build results, containing the _unversioned_ hpi for upload to hudson/jenkins,
+				since uploading a versioned hpi file would not upgrade a previous installation.
+				also attaches the sources to the build results.
+			-->
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.2.1</version>
+				<executions>
+					<execution>
+						<id>package-extras</id>
+						<phase>package</phase>
+						<goals><goal>single</goal></goals>
+						<configuration>
+							<descriptors>
+								<descriptor>${basedir}/src/main/assembly/hpi-zip.xml</descriptor>
+							</descriptors>
+							<descriptorRefs>
+								<descriptorRef>src</descriptorRef>
+							</descriptorRefs>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>
