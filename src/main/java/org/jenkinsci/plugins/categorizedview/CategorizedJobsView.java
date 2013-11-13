@@ -7,14 +7,18 @@ import hudson.model.Descriptor;
 import hudson.model.Descriptor.FormException;
 import hudson.model.ListView;
 import hudson.model.ViewDescriptor;
+import hudson.model.ViewGroup;
+import hudson.util.CaseInsensitiveComparator;
 import hudson.util.DescribableList;
 import hudson.util.FormValidation;
 import hudson.views.ListViewColumn;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -32,7 +36,35 @@ public class CategorizedJobsView extends ListView {
 	public CategorizedJobsView(String name) {
 		super(name);
 	}
-	
+
+	public CategorizedJobsView(String name, ViewGroup owner) {
+		super(name, owner);
+	}
+
+	private Object readResolve() {
+		try {
+			Method readResolve = ListView.class.getDeclaredMethod("readResolve");
+			readResolve.setAccessible(true);
+			readResolve.invoke(this);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		try {
+			Field field = ListView.class.getDeclaredField("jobNames");
+			field.setAccessible(true);
+			Object jobNames = field.get(this);
+			if(jobNames==null)
+			{
+				field.set( this,  new TreeSet<String>(CaseInsensitiveComparator.INSTANCE));
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return this;
+	}
+
 	@Override
 	public List<TopLevelItem> getItems() {
 		categorizedItemsBuilder = new CategorizedItemsBuilder(super.getItems(), groupingRules);
@@ -54,7 +86,7 @@ public class CategorizedJobsView extends ListView {
     }
     
     public String getGroupClassFor(TopLevelItem item) {
-    	return categorizedItemsBuilder.getGrouClassFor(item);
+		return categorizedItemsBuilder.getGroupClassFor(item);
     }
     
     public boolean hasLink(TopLevelItem item) {
@@ -85,10 +117,12 @@ public class CategorizedJobsView extends ListView {
 		try {
 			Field field = ListView.class.getDeclaredField("columns");
 			field.setAccessible(true);
-			field.set(
+			if(field.get(this)==null){
+				field.set(
 					this,
 					new DescribableList<ListViewColumn, Descriptor<ListViewColumn>>(
 							this, CategorizedJobsListViewColumn.createDefaultCategorizedInitialColumnList()));
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

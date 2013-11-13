@@ -121,7 +121,7 @@ public class CategorizedItemsBuilder {
 		return itemsData.get(identedItem.getName()).getCss();
 	}
 
-	public String getGrouClassFor(TopLevelItem item) {
+	public String getGroupClassFor(TopLevelItem item) {
 		return itemsData.get(item.getName()).getGroupClass();
 	}
 }

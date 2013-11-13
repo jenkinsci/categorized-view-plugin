@@ -37,6 +37,7 @@ THE SOFTWARE.
     </select>
   </f:entry>
   
+<!-- Original from categorized-jobs-view 1.0, don't know what's purpose it had, but did break the joblist completely
   <f:entry title="${%Recurse in subfolders}" field="recurse">
     <f:checkbox id="recurse"/>
   </f:entry>
@@ -57,6 +58,17 @@ THE SOFTWARE.
       </j:forEach>
     </div>
   </f:entry>
+-->
+
+  <f:entry title="${%Jobs}">
+    <div class="listview-jobs">
+      <j:forEach var="job" items="${it.ownerItemGroup.items}">
+        <f:checkbox name="${job.name}" checked="${it.contains(job)}" title="${job.name}"/>
+        <br/>
+      </j:forEach>
+    </div>
+  </f:entry>
+
 
   <f:optionalBlock name="useincluderegex" title="${%Use a regular expression to include jobs into the view}"
                    checked="${it.includeRegex != null}" help="/help/view-config/includeregex.html">
