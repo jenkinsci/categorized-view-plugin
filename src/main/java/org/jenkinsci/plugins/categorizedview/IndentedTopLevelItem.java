@@ -10,10 +10,13 @@ public class IndentedTopLevelItem {
 	public final TopLevelItem target;
 	private int nestLevel;
 	private final String groupLabel;
+	private final String groupClass;
 	public IndentedTopLevelItem(TopLevelItem target, int nestLevel, String groupLabel, String css) {
 		this.target = target;
 		this.nestLevel = nestLevel;
 		this.groupLabel = groupLabel;
+		// make a unique (barely) readable css-classname that works with for all possible labels
+		this.groupClass = "g_"+groupLabel.replaceAll("[^a-zA-Z0-9_]","_")+groupLabel.hashCode();		
 		this.specificCss.append(css);
 	}
 	
@@ -30,7 +33,7 @@ public class IndentedTopLevelItem {
 	}
 	
 	public String getGroupClass() {
-		return groupLabel.replace(".", "_").replace(" ","_");
+		return groupClass;
 	}
 
 	public String getCss() {

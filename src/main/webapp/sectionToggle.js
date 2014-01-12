@@ -10,7 +10,7 @@ function restoreJobGroupCollapseState(viewName, groupName)
 	}
 }
 
-function toggleJogGroupVisibility(handle, viewName, group) 
+function toggleJobGroupVisibility(handle, viewName, group) 
 {
 	if (handle.getAttribute("collapseState") == "collapsed") {
 		showJobGroup(viewName,group)
