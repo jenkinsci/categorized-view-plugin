@@ -1,13 +1,15 @@
 package org.jenkinsci.plugins.categorizedview;
 
-import org.kohsuke.stapler.DataBoundConstructor;
-
 import hudson.Extension;
-import hudson.model.Describable;
+import hudson.model.TopLevelItem;
 import hudson.model.Descriptor;
 import jenkins.model.Jenkins;
 
-public class GroupingRule implements Describable<GroupingRule>{
+import org.apache.commons.lang.StringUtils;
+import org.kohsuke.stapler.DataBoundConstructor;
+
+public class GroupingRule extends CategorizedViewGroupingRule
+{
 	private final String groupRegex;
 	private final String namingRule;
 	
@@ -17,28 +19,20 @@ public class GroupingRule implements Describable<GroupingRule>{
 		this.namingRule = namingRule;
 	}
 	
-	public String getGroupRegex() {
-		return groupRegex;
-	}
-	
-	public String getNamingRule() {
-		return namingRule;
-	}
-	
-	public String getNormalizedGroupRegex() {
+	String getNormalizedGroupRegex() {
 		return normalizeRegex(groupRegex);
 	}
 	
-	public Descriptor<GroupingRule> getDescriptor() {
+	@SuppressWarnings("unchecked")
+	public Descriptor<CategorizedViewGroupingRule> getDescriptor() {
 		return Jenkins.getInstance().getDescriptorOrDie(getClass());
 	}
 	
 	@Extension
-	public static final class DescriptorImpl extends Descriptor<GroupingRule> {
-
+	public static final class DescriptorImpl extends Descriptor<CategorizedViewGroupingRule> {
 		@Override
 		public String getDisplayName() {
-			return "Grouping Rule";
+			return "Regex Grouping Rule";
 		}
 	}
 	
@@ -55,4 +49,15 @@ public class GroupingRule implements Describable<GroupingRule>{
 		return regex;
 	}
 
+	public boolean accepts(TopLevelItem item) {
+		if (StringUtils.isEmpty(groupRegex)) 
+			return false;
+		
+		return item.getName().matches(getNormalizedGroupRegex()); 
+	}
+
+	public String groupNameGivenItem(TopLevelItem item) {
+		final String groupNamingRule = StringUtils.isEmpty(namingRule)?"$1":namingRule;
+		return item.getName().replaceAll(getNormalizedGroupRegex(), groupNamingRule);
+	}
 }

@@ -6,12 +6,10 @@
     <version>1.510</version><!-- which version of Jenkins is this plugin built against? -->
   </parent>
 
-  <groupId>org.jenkins-ci.plugins</groupId>
   <artifactId>categorized-view</artifactId>
   <version>1.2-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
-  <!-- get every artifact through repo.jenkins-ci.org, which proxies all the artifacts that we need -->
   <repositories>
     <repository>
       <id>repo.jenkins-ci.org</id>
@@ -46,4 +44,26 @@
   		<scope>test</scope>
   	</dependency>
   </dependencies>
+  <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <source>1.6</source>
+                        <target>1.6</target>
+                        <encoding>UTF8</encoding>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <configuration>
+                        <encoding>UTF8</encoding>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+  </build>
 </project>

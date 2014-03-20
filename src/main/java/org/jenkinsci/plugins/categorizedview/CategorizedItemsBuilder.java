@@ -10,8 +10,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
-
 public class CategorizedItemsBuilder {
 	final Comparator<IndentedTopLevelItem> comparator = new TopLevelItemComparator();
 	private List<TopLevelItem> itemsToCategorize;
@@ -24,15 +22,15 @@ public class CategorizedItemsBuilder {
 	}
 	
 	public List<TopLevelItem> getRegroupedItems() {
-		return buildRegroupedItems(itemsToCategorize, groupingRules);
+		return buildRegroupedItems(itemsToCategorize);
 	}
 
-	private List<TopLevelItem> buildRegroupedItems(List<TopLevelItem> items, List<GroupingRule> groupingRules) {
-		final List<IndentedTopLevelItem> groupedItems = buildCategorizedList(items, groupingRules);
+	private List<TopLevelItem> buildRegroupedItems(List<TopLevelItem> items) {
+		final List<IndentedTopLevelItem> groupedItems = buildCategorizedList(items);
 		return flattenList(groupedItems);
 	}
 	
-	private List<IndentedTopLevelItem> buildCategorizedList(List<TopLevelItem> itemsToCategorize, List<GroupingRule> groupingRules) {
+	private List<IndentedTopLevelItem> buildCategorizedList(List<TopLevelItem> itemsToCategorize) {
 		final List<IndentedTopLevelItem> categorizedItems = new ArrayList<IndentedTopLevelItem>();
 		if (groupingRules.size()==0) {
 			for (TopLevelItem indentedTopLevelItem : itemsToCategorize) {
@@ -42,33 +40,30 @@ public class CategorizedItemsBuilder {
 		}
 		
 		for (TopLevelItem item : itemsToCategorize) {
-			boolean categorized = tryToFitItemToRegexCategory(groupingRules, categorizedItems, item);
+			boolean categorized = tryToFitItemInCategory(groupingRules, categorizedItems, item);
 			if (!categorized)
 				categorizedItems.add(new IndentedTopLevelItem(item));
 		}
 		return categorizedItems;
 	}
 
-	private boolean tryToFitItemToRegexCategory( List<GroupingRule> groupingRules, final List<IndentedTopLevelItem> categorizedItems, TopLevelItem item) 
+	private boolean tryToFitItemInCategory( List<GroupingRule> groupingRules, final List<IndentedTopLevelItem> categorizedItems, TopLevelItem item) 
 	{
 		boolean grouped = false;
-		for (GroupingRule groupingRule : groupingRules) {
-			if (StringUtils.isEmpty(groupingRule.getGroupRegex())) 
-				continue;
-			
-			if (item.getName().matches(groupingRule.getNormalizedGroupRegex())) {
-				addItemInMatchingGroup(categorizedItems, groupingRule.getNormalizedGroupRegex(), item, groupingRule.getNamingRule());
+		for (CategorizedViewGroupingRule groupingRule : groupingRules) {
+			if (groupingRule.accepts(item)) {
+				addItemToAppropriateGroup(categorizedItems, item, groupingRule);
 				grouped = true;
 			}
 		}
 		return grouped;
 	}
 
-	private void addItemInMatchingGroup(final List<IndentedTopLevelItem> groupedItems, String regex, TopLevelItem item, String namingRule) 
-	{
-		final String groupNamingRule = StringUtils.isEmpty(namingRule)?"$1":namingRule;
-		final String groupName = item.getName().replaceAll(regex, groupNamingRule);
-		IndentedTopLevelItem groupTopLevelItem = getGroupForItemOrCreateIfNeeded(groupedItems, groupName);
+	public void addItemToAppropriateGroup(
+			final List<IndentedTopLevelItem> categorizedItems,
+			TopLevelItem item, CategorizedViewGroupingRule groupingRule) {
+		final String groupName = groupingRule.groupNameGivenItem(item);
+		IndentedTopLevelItem groupTopLevelItem = getGroupForItemOrCreateIfNeeded(categorizedItems, groupName);
 		IndentedTopLevelItem subItem = new IndentedTopLevelItem(item, 1, groupName, "");
 		groupTopLevelItem.add(subItem);
 	}
