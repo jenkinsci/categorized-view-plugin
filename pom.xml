@@ -38,4 +38,12 @@
     <url>https://github.com/jenkinsci/categorized-view-plugin</url>
   </scm>
   <url>https://wiki.jenkins-ci.org/display/JENKINS/Categorized+Jobs+View</url>
+  <dependencies>
+  	<dependency>
+  		<groupId>org.mockito</groupId>
+  		<artifactId>mockito-all</artifactId>
+  		<version>1.9.5</version>
+  		<scope>test</scope>
+  	</dependency>
+  </dependencies>
 </project>
