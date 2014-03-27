@@ -13,10 +13,10 @@ import java.util.Map;
 public class CategorizedItemsBuilder {
 	final Comparator<IndentedTopLevelItem> comparator = new TopLevelItemComparator();
 	private List<TopLevelItem> itemsToCategorize;
-	private List<GroupingRule> groupingRules;
+	private List<? extends CategorizedViewGroupingRule> groupingRules;
 	private Map<String, IndentedTopLevelItem> itemsData;
 
-	public CategorizedItemsBuilder(List<TopLevelItem> itemsToCategorize, List<GroupingRule> groupingRules) {
+	public CategorizedItemsBuilder(List<TopLevelItem> itemsToCategorize, List<? extends CategorizedViewGroupingRule> groupingRules) {
 		this.itemsToCategorize = itemsToCategorize;
 		this.groupingRules = groupingRules;
 	}
@@ -47,7 +47,7 @@ public class CategorizedItemsBuilder {
 		return categorizedItems;
 	}
 
-	private boolean tryToFitItemInCategory( List<GroupingRule> groupingRules, final List<IndentedTopLevelItem> categorizedItems, TopLevelItem item) 
+	private boolean tryToFitItemInCategory( List<? extends CategorizedViewGroupingRule> groupingRules, final List<IndentedTopLevelItem> categorizedItems, TopLevelItem item) 
 	{
 		boolean grouped = false;
 		for (CategorizedViewGroupingRule groupingRule : groupingRules) {
