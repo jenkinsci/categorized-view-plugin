@@ -30,11 +30,17 @@ import org.kohsuke.stapler.StaplerRequest;
 
 public class CategorizedJobsView extends ListView {
 	private List<GroupingRule> groupingRules = new ArrayList<GroupingRule>();
+
+	private DescribableList<CategorizedViewGroupingRule, Descriptor<CategorizedViewGroupingRule>> catGroupingRules;
+	
 	private transient CategorizedItemsBuilder categorizedItemsBuilder;
 	
 	@DataBoundConstructor
 	public CategorizedJobsView(String name) {
 		super(name);
+		if (catGroupingRules == null)
+			catGroupingRules = new DescribableList<CategorizedViewGroupingRule, Descriptor<CategorizedViewGroupingRule>>(this);
+		migrateOldFormat();
 	}
 	
 	
@@ -69,19 +75,37 @@ public class CategorizedJobsView extends ListView {
 	
 	@Override
 	public List<TopLevelItem> getItems() {
-		categorizedItemsBuilder = new CategorizedItemsBuilder(super.getItems(), groupingRules);
+		if (catGroupingRules == null) 
+			categorizedItemsBuilder = new CategorizedItemsBuilder(super.getItems(), groupingRules);
+		else
+			categorizedItemsBuilder = new CategorizedItemsBuilder(super.getItems(), catGroupingRules.toList());
+		
 		return categorizedItemsBuilder.getRegroupedItems();
+	}
+
+
+	public void migrateOldFormat() {
+		if (catGroupingRules !=null)
+			return;
+		if (groupingRules ==null || groupingRules.size() == 0)
+			catGroupingRules = new DescribableList<CategorizedViewGroupingRule, Descriptor<CategorizedViewGroupingRule>>(this);
+		else {
+			catGroupingRules = new DescribableList<CategorizedViewGroupingRule, Descriptor<CategorizedViewGroupingRule>>(this, groupingRules);
+			groupingRules.clear();
+		}
+		
 	}
 	
 	@Override
 	protected void submit(StaplerRequest req) throws ServletException, FormException, IOException {
 		super.submit(req);
-		groupingRules = req.bindJSONToList(GroupingRule.class, req.getSubmittedForm().get("groupingRules"));
+		catGroupingRules.rebuildHetero(req, req.getSubmittedForm(), CategorizedViewGroupingRule.all(), "catGroupingRules");
 	}
     
-    public List<GroupingRule> getGroupingRules() {
-        return groupingRules;
-    }
+    public DescribableList<CategorizedViewGroupingRule, Descriptor<CategorizedViewGroupingRule>> getCatGroupingRules() {
+    	migrateOldFormat();
+		return catGroupingRules;
+	}
     
     public String getCssFor(TopLevelItem item) {
     	return categorizedItemsBuilder.getCssFor(item);

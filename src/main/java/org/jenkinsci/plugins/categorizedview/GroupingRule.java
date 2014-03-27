@@ -20,7 +20,7 @@ public class GroupingRule extends CategorizedViewGroupingRule
 	}
 	
 	String getNormalizedGroupRegex() {
-		return normalizeRegex(groupRegex);
+		return normalizeRegex(getGroupRegex());
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -50,14 +50,22 @@ public class GroupingRule extends CategorizedViewGroupingRule
 	}
 
 	public boolean accepts(TopLevelItem item) {
-		if (StringUtils.isEmpty(groupRegex)) 
+		if (StringUtils.isEmpty(getGroupRegex())) 
 			return false;
 		
 		return item.getName().matches(getNormalizedGroupRegex()); 
 	}
 
 	public String groupNameGivenItem(TopLevelItem item) {
-		final String groupNamingRule = StringUtils.isEmpty(namingRule)?"$1":namingRule;
+		final String groupNamingRule = StringUtils.isEmpty(getNamingRule())?"$1":getNamingRule();
 		return item.getName().replaceAll(getNormalizedGroupRegex(), groupNamingRule);
+	}
+
+	public String getGroupRegex() {
+		return groupRegex;
+	}
+
+	public String getNamingRule() {
+		return namingRule;
 	}
 }

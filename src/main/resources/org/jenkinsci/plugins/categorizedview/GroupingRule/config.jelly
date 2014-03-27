@@ -5,5 +5,5 @@
 	<f:entry title="${%Naming Rule}"  help="/plugin/categorized-view/namingRule.html">
 		<f:textbox name="namingRule" field="namingRule"/>
 	</f:entry>
-	<f:entry title=""> <div align="right"> <f:repeatableDeleteButton /> </div> </f:entry>
+	<f:entry title=""> <div align="right"> </div> </f:entry>
 </j:jelly>

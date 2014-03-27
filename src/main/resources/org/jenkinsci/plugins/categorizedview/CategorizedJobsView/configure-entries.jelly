@@ -88,11 +88,9 @@ THE SOFTWARE.
 	</f:section>
 
 	<f:section title="${%Job group categorization}">
-
-		<f:entry title="">
-			<f:repeatableProperty field="groupingRules" name="groupingRules" items="${it.groupingRules}" add="${%Add new group rule}"/>
-		</f:entry>
-
+		<f:block>
+			<f:repeatableHeteroProperty field="catGroupingRules" hasHeader="true" addCaption="${%Add new categorization rule}"/>
+		</f:block>
 	</f:section>
 
 	<f:section title="${%Columns}">
