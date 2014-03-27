@@ -13,10 +13,10 @@ import java.util.Map;
 public class CategorizedItemsBuilder {
 	final Comparator<IndentedTopLevelItem> comparator = new TopLevelItemComparator();
 	private List<TopLevelItem> itemsToCategorize;
-	private List<? extends CategorizedViewGroupingRule> groupingRules;
+	private List<? extends CategorizationCriteria> groupingRules;
 	private Map<String, IndentedTopLevelItem> itemsData;
 
-	public CategorizedItemsBuilder(List<TopLevelItem> itemsToCategorize, List<? extends CategorizedViewGroupingRule> groupingRules) {
+	public CategorizedItemsBuilder(List<TopLevelItem> itemsToCategorize, List<? extends CategorizationCriteria> groupingRules) {
 		this.itemsToCategorize = itemsToCategorize;
 		this.groupingRules = groupingRules;
 	}
@@ -47,11 +47,14 @@ public class CategorizedItemsBuilder {
 		return categorizedItems;
 	}
 
-	private boolean tryToFitItemInCategory( List<? extends CategorizedViewGroupingRule> groupingRules, final List<IndentedTopLevelItem> categorizedItems, TopLevelItem item) 
+	private boolean tryToFitItemInCategory(
+			List<? extends CategorizationCriteria> groupingRules, 
+			final List<IndentedTopLevelItem> categorizedItems, 
+			TopLevelItem item) 
 	{
 		boolean grouped = false;
-		for (CategorizedViewGroupingRule groupingRule : groupingRules) {
-			if (groupingRule.accepts(item)) {
+		for (CategorizationCriteria groupingRule : groupingRules) {
+			if (groupingRule.groupNameGivenItem(item)!=null) {
 				addItemToAppropriateGroup(categorizedItems, item, groupingRule);
 				grouped = true;
 			}
@@ -61,7 +64,8 @@ public class CategorizedItemsBuilder {
 
 	public void addItemToAppropriateGroup(
 			final List<IndentedTopLevelItem> categorizedItems,
-			TopLevelItem item, CategorizedViewGroupingRule groupingRule) {
+			TopLevelItem item, CategorizationCriteria groupingRule) 
+	{
 		final String groupName = groupingRule.groupNameGivenItem(item);
 		IndentedTopLevelItem groupTopLevelItem = getGroupForItemOrCreateIfNeeded(categorizedItems, groupName);
 		IndentedTopLevelItem subItem = new IndentedTopLevelItem(item, 1, groupName, "");
@@ -97,7 +101,8 @@ public class CategorizedItemsBuilder {
 	final Map<String, IndentedTopLevelItem> groupItemByGroupName = new HashMap<String, IndentedTopLevelItem>();
 	private IndentedTopLevelItem getGroupForItemOrCreateIfNeeded(
 			final List<IndentedTopLevelItem> groupedItems,
-			final String groupName) {
+			final String groupName) 
+	{
 		boolean groupIsMissing = !groupItemByGroupName.containsKey(groupName);
 		if (groupIsMissing) {
 			GroupTopLevelItem value = new GroupTopLevelItem(groupName);

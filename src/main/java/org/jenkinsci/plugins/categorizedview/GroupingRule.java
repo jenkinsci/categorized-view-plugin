@@ -3,12 +3,11 @@ package org.jenkinsci.plugins.categorizedview;
 import hudson.Extension;
 import hudson.model.TopLevelItem;
 import hudson.model.Descriptor;
-import jenkins.model.Jenkins;
 
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-public class GroupingRule extends CategorizedViewGroupingRule
+public class GroupingRule extends CategorizationCriteria
 {
 	private final String groupRegex;
 	private final String namingRule;
@@ -19,17 +18,29 @@ public class GroupingRule extends CategorizedViewGroupingRule
 		this.namingRule = namingRule;
 	}
 	
+
+	@Override
+	public String groupNameGivenItem(TopLevelItem item) {
+		if (!isOnGroup(item))
+			return null;
+		
+		final String groupNamingRule = StringUtils.isEmpty(getNamingRule())?"$1":getNamingRule();
+		return item.getName().replaceAll(getNormalizedGroupRegex(), groupNamingRule);
+	}
+	
+	private boolean isOnGroup(TopLevelItem item) {
+		if (StringUtils.isEmpty(getGroupRegex())) 
+			return false;
+		
+		return item.getName().matches(getNormalizedGroupRegex()); 
+	}
+
 	String getNormalizedGroupRegex() {
 		return normalizeRegex(getGroupRegex());
 	}
 	
-	@SuppressWarnings("unchecked")
-	public Descriptor<CategorizedViewGroupingRule> getDescriptor() {
-		return Jenkins.getInstance().getDescriptorOrDie(getClass());
-	}
-	
 	@Extension
-	public static final class DescriptorImpl extends Descriptor<CategorizedViewGroupingRule> {
+	public static final class DescriptorImpl extends Descriptor<CategorizationCriteria> {
 		@Override
 		public String getDisplayName() {
 			return "Regex Grouping Rule";
@@ -47,18 +58,6 @@ public class GroupingRule extends CategorizedViewGroupingRule
 			regex = ".*("+groupRegex+").*";
 		}
 		return regex;
-	}
-
-	public boolean accepts(TopLevelItem item) {
-		if (StringUtils.isEmpty(getGroupRegex())) 
-			return false;
-		
-		return item.getName().matches(getNormalizedGroupRegex()); 
-	}
-
-	public String groupNameGivenItem(TopLevelItem item) {
-		final String groupNamingRule = StringUtils.isEmpty(getNamingRule())?"$1":getNamingRule();
-		return item.getName().replaceAll(getNormalizedGroupRegex(), groupNamingRule);
 	}
 
 	public String getGroupRegex() {

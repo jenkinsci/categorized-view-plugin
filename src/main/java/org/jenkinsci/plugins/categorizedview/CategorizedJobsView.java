@@ -31,15 +31,15 @@ import org.kohsuke.stapler.StaplerRequest;
 public class CategorizedJobsView extends ListView {
 	private List<GroupingRule> groupingRules = new ArrayList<GroupingRule>();
 
-	private DescribableList<CategorizedViewGroupingRule, Descriptor<CategorizedViewGroupingRule>> catGroupingRules;
+	private DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>> categorizationCriteria;
 	
 	private transient CategorizedItemsBuilder categorizedItemsBuilder;
 	
 	@DataBoundConstructor
 	public CategorizedJobsView(String name) {
 		super(name);
-		if (catGroupingRules == null)
-			catGroupingRules = new DescribableList<CategorizedViewGroupingRule, Descriptor<CategorizedViewGroupingRule>>(this);
+		if (categorizationCriteria == null)
+			categorizationCriteria = new DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>>(this);
 		migrateOldFormat();
 	}
 	
@@ -75,22 +75,22 @@ public class CategorizedJobsView extends ListView {
 	
 	@Override
 	public List<TopLevelItem> getItems() {
-		if (catGroupingRules == null) 
+		if (categorizationCriteria == null) 
 			categorizedItemsBuilder = new CategorizedItemsBuilder(super.getItems(), groupingRules);
 		else
-			categorizedItemsBuilder = new CategorizedItemsBuilder(super.getItems(), catGroupingRules.toList());
+			categorizedItemsBuilder = new CategorizedItemsBuilder(super.getItems(), categorizationCriteria.toList());
 		
 		return categorizedItemsBuilder.getRegroupedItems();
 	}
 
 
 	public void migrateOldFormat() {
-		if (catGroupingRules !=null)
+		if (categorizationCriteria !=null)
 			return;
 		if (groupingRules ==null || groupingRules.size() == 0)
-			catGroupingRules = new DescribableList<CategorizedViewGroupingRule, Descriptor<CategorizedViewGroupingRule>>(this);
+			categorizationCriteria = new DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>>(this);
 		else {
-			catGroupingRules = new DescribableList<CategorizedViewGroupingRule, Descriptor<CategorizedViewGroupingRule>>(this, groupingRules);
+			categorizationCriteria = new DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>>(this, groupingRules);
 			groupingRules.clear();
 		}
 		
@@ -99,12 +99,12 @@ public class CategorizedJobsView extends ListView {
 	@Override
 	protected void submit(StaplerRequest req) throws ServletException, FormException, IOException {
 		super.submit(req);
-		catGroupingRules.rebuildHetero(req, req.getSubmittedForm(), CategorizedViewGroupingRule.all(), "catGroupingRules");
+		categorizationCriteria.rebuildHetero(req, req.getSubmittedForm(), CategorizationCriteria.all(), "categorizationCriteria");
 	}
     
-    public DescribableList<CategorizedViewGroupingRule, Descriptor<CategorizedViewGroupingRule>> getCatGroupingRules() {
+    public DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>> getCategorizationCriteria() {
     	migrateOldFormat();
-		return catGroupingRules;
+		return categorizationCriteria;
 	}
     
     public String getCssFor(TopLevelItem item) {
