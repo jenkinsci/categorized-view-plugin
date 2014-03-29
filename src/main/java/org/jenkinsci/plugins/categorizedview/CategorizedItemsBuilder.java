@@ -13,6 +13,7 @@ import java.util.Map;
 public class CategorizedItemsBuilder {
 	final Comparator<IndentedTopLevelItem> comparator = new TopLevelItemComparator();
 	private List<TopLevelItem> itemsToCategorize;
+	private List<GroupTopLevelItem> groupItems = new ArrayList<GroupTopLevelItem>();
 	private List<? extends CategorizationCriteria> groupingRules;
 	private Map<String, IndentedTopLevelItem> itemsData;
 
@@ -67,9 +68,8 @@ public class CategorizedItemsBuilder {
 			TopLevelItem item, CategorizationCriteria groupingRule) 
 	{
 		final String groupName = groupingRule.groupNameGivenItem(item);
-		IndentedTopLevelItem groupTopLevelItem = getGroupForItemOrCreateIfNeeded(categorizedItems, groupName);
-		IndentedTopLevelItem subItem = new IndentedTopLevelItem(item, 1, groupName, "");
-		groupTopLevelItem.add(subItem);
+		GroupTopLevelItem groupTopLevelItem = getGroupForItemOrCreateIfNeeded(categorizedItems, groupName);
+		groupTopLevelItem.add(item);
 	}
 
 	private List<TopLevelItem> flattenList(final List<IndentedTopLevelItem> groupedItems) 
@@ -78,7 +78,7 @@ public class CategorizedItemsBuilder {
 		itemsData = new LinkedHashMap<String, IndentedTopLevelItem>();
 		Collections.sort(groupedItems, comparator);
 		for (IndentedTopLevelItem item : groupedItems) {
-			final String groupLabel = item.target.getName();
+			final String groupLabel = item.getName();
 			addNestedItemsAsIndentedItemsInTheResult(res, item,	groupLabel);
 		}
 		
@@ -86,8 +86,12 @@ public class CategorizedItemsBuilder {
 	}
 
 	private void addNestedItemsAsIndentedItemsInTheResult(final ArrayList<TopLevelItem> res, IndentedTopLevelItem item, final String groupLabel) {
-		res.add(item.target);
-		itemsData.put(item.target.getName(), item);
+		if (item.target != null)
+			res.add(item.target);
+		else
+			res.add(item);
+		
+		itemsData.put(item.getName(), item);
 		if (item.getNestedItems().size() > 0) {
 			List<IndentedTopLevelItem> nestedItems = item.getNestedItems();
 			Collections.sort(nestedItems, comparator);
@@ -98,22 +102,24 @@ public class CategorizedItemsBuilder {
 		}
 	}
 	
-	final Map<String, IndentedTopLevelItem> groupItemByGroupName = new HashMap<String, IndentedTopLevelItem>();
-	private IndentedTopLevelItem getGroupForItemOrCreateIfNeeded(
+	final Map<String, GroupTopLevelItem> groupItemByGroupName = new HashMap<String, GroupTopLevelItem>();
+	private GroupTopLevelItem getGroupForItemOrCreateIfNeeded(
 			final List<IndentedTopLevelItem> groupedItems,
 			final String groupName) 
 	{
 		boolean groupIsMissing = !groupItemByGroupName.containsKey(groupName);
 		if (groupIsMissing) {
 			GroupTopLevelItem value = new GroupTopLevelItem(groupName);
-			IndentedTopLevelItem value2 = new IndentedTopLevelItem(value, 0, groupName, value.getCss());
-			groupItemByGroupName.put(groupName, value2);
+			groupItems.add(value);
+			groupItemByGroupName.put(groupName, value);
 			groupedItems.add(groupItemByGroupName.get(groupName));
 		}
 		return groupItemByGroupName.get(groupName);
 	}
 
 	public int getNestLevelFor(TopLevelItem identedItem) {
+		if (identedItem == null)
+			return 0;
 		return itemsData.get(identedItem.getName()).getNestLevel();
 	}
 
@@ -123,5 +129,9 @@ public class CategorizedItemsBuilder {
 
 	public String getGroupClassFor(TopLevelItem item) {
 		return itemsData.get(item.getName()).getGroupClass();
+	}
+
+	public List<GroupTopLevelItem> getGroupItems() {
+		return groupItems;
 	}
 }

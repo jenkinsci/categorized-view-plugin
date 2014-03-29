@@ -1,11 +1,15 @@
 package org.jenkinsci.plugins.categorizedview;
+import hudson.model.BallColor;
 import hudson.model.HealthReport;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.model.TopLevelItem;
 import hudson.model.TopLevelItemDescriptor;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
 import hudson.model.Hudson;
 import hudson.model.Job;
+import hudson.model.Run;
 import hudson.search.SearchIndex;
 import hudson.search.Search;
 import hudson.security.ACL;
@@ -18,12 +22,35 @@ import java.util.Collections;
 import java.util.List;
 
 import org.acegisecurity.AccessDeniedException;
+import org.joda.time.DateTime;
 
-public class GroupTopLevelItem  implements TopLevelItem {
-	private final String labelText;
+public class GroupTopLevelItem  extends IndentedTopLevelItem  {
+	private final String groupName;
 	
 	public GroupTopLevelItem(String label) {
-		this.labelText = label;
+		super(null, 0, label, "font-weight:bold;");
+		this.groupName = label;
+	}
+
+	public String getName() {
+		return groupName;
+	}
+
+	public String getFullName() {
+		return groupName;
+	}
+
+	public String getDisplayName() {
+		return groupName;
+	}
+
+	public String getFullDisplayName() {
+		return groupName;
+	}
+
+	public void add(TopLevelItem item) {
+		IndentedTopLevelItem subItem = new IndentedTopLevelItem(item, 1, groupName, "");
+		nestedItems.add(subItem);
 	}
 
 	public void onLoad(ItemGroup<? extends Item> parent, String name) throws IOException {
@@ -42,6 +69,115 @@ public class GroupTopLevelItem  implements TopLevelItem {
 	}
 
 	public void checkPermission(Permission permission) throws AccessDeniedException {
+	}
+	
+	public BallColor getIconColor() {
+		BallColor colorState = BallColor.NOTBUILT;
+		for (IndentedTopLevelItem items : getNestedItems()) {
+			if (items.target instanceof AbstractProject) {
+				BallColor projectColorState = ((AbstractProject)items.target).getIconColor();
+				colorState = chooseNextColor(colorState, projectColorState);
+			}
+		}
+		return colorState;
+	}
+	
+	public Run getLastBuild() {
+		return getLastBuildOfType(new GetBuild() {
+			public AbstractBuild getFrom(AbstractProject project) {
+				return project.getLastBuild();
+			}
+		});
+    }
+	
+	public Run getLastSuccessfulBuild() {
+		return getLastBuildOfType(new GetBuild() {
+			public AbstractBuild getFrom(AbstractProject project) {
+				return (AbstractBuild) project.getLastSuccessfulBuild();
+			}
+		});
+	}
+	
+	public Run getLastStableBuild() {
+		return getLastBuildOfType(new GetBuild() {
+			public AbstractBuild getFrom(AbstractProject project) {
+				return (AbstractBuild) project.getLastStableBuild();
+			}
+		});
+	}
+
+	public Run getLastFailedBuild() {
+		return getLastBuildOfType(new GetBuild() {
+			public AbstractBuild getFrom(AbstractProject project) {
+				return (AbstractBuild) project.getLastFailedBuild();
+			}
+		});
+	}
+	
+	public Run getLastUnsuccessfulBuild() {
+		return getLastBuildOfType(new GetBuild() {
+			public AbstractBuild getFrom(AbstractProject project) {
+				return (AbstractBuild) project.getLastUnsuccessfulBuild();
+			}
+		});
+	}
+
+	public Run getLastBuildOfType(GetBuild getBuild) {
+		AbstractBuild lastBuild = null;
+		for (IndentedTopLevelItem items : getNestedItems()) {
+			if (items.target instanceof AbstractProject) {
+				AbstractBuild build = getBuild.getFrom((AbstractProject)items.target);
+				if (lastBuild == null)
+					lastBuild = build;
+				else {
+					if (new DateTime(build.getTimestamp()).isAfter(new DateTime(lastBuild.getTimestamp()))) {
+						lastBuild = build;
+					}
+				}
+			}
+		}
+		return lastBuild;
+	}
+	
+	static interface GetBuild {
+		public AbstractBuild getFrom(AbstractProject project);
+	}
+
+	public BallColor chooseNextColor(BallColor res, BallColor iconColor) {
+		switch(res) {
+		case ABORTED: case ABORTED_ANIME:
+			switch(iconColor) {
+			case YELLOW: case YELLOW_ANIME:
+			case RED: case RED_ANIME:
+				res = iconColor;
+				break;
+			default:
+			}
+			break;
+		case BLUE: case BLUE_ANIME:
+			switch(iconColor) {
+			case ABORTED: case ABORTED_ANIME:
+			case YELLOW: case YELLOW_ANIME:
+			case RED: case RED_ANIME:
+				res = iconColor;
+				break;
+			default:
+			}
+			break;
+		case YELLOW: case YELLOW_ANIME:
+			switch(iconColor) {
+			case RED: case RED_ANIME:
+				res = iconColor;
+				break;
+			default:
+			}
+			break;
+		case RED: case RED_ANIME:
+			break;
+		default:
+			res = iconColor;
+		}
+		return res;
 	}
 
 	public String getUrl() {
@@ -94,7 +230,16 @@ public class GroupTopLevelItem  implements TopLevelItem {
 	}
 
 	public HealthReport getBuildHealth() {
-		return null;
+		HealthReport lowest = new HealthReport();
+		lowest.setScore(100);
+		for (IndentedTopLevelItem e : getNestedItems()) {
+			if (e.target instanceof AbstractProject) {
+				HealthReport buildHealth = ((AbstractProject)e.target).getBuildHealth();
+				if (buildHealth.getScore() < lowest.getScore())
+					lowest = buildHealth;
+			}
+		}
+		return lowest;
 	}
 
 	public List<HealthReport> getBuildHealthReports() {
@@ -119,23 +264,4 @@ public class GroupTopLevelItem  implements TopLevelItem {
 		return Collections.EMPTY_LIST;
 	}
 
-	public String getName() {
-		return labelText;
-	}
-
-	public String getFullName() {
-		return labelText;
-	}
-
-	public String getDisplayName() {
-		return labelText;
-	}
-
-	public String getFullDisplayName() {
-		return labelText;
-	}
-
-	public String getCss() {
-		return "font-weight:bold;";
-	}
 }

@@ -17,7 +17,6 @@ public class GroupingRule extends CategorizationCriteria
 		this.groupRegex = groupRegex;
 		this.namingRule = namingRule;
 	}
-	
 
 	@Override
 	public String groupNameGivenItem(TopLevelItem item) {

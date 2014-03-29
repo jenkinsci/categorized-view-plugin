@@ -7,6 +7,8 @@ import hudson.model.TopLevelItem;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -141,6 +143,19 @@ public class CategorizedItemsBuilderTest {
 		
 		String actual = buildResultToCompare(subject);
 		assertEquals(expected, actual);
+		
+		List<GroupTopLevelItem> groupItems = subject.getGroupItems();
+		assertEquals(3, groupItems.size());
+		
+		Collections.sort(groupItems, new Comparator<GroupTopLevelItem>() {
+			public int compare(GroupTopLevelItem o1, GroupTopLevelItem o2) {
+				return o1.getName().compareToIgnoreCase(o2.getName());
+			}
+		});
+		assertEquals("baz m", groupItems.get(0).getName());
+		assertEquals(3, groupItems.get(0).getNestedItems().size());
+		assertEquals("Foo 8.02", groupItems.get(1).getName());
+		assertEquals("Foo 8.03", groupItems.get(2).getName());
 	}
 
 	private String buildResultToCompare(CategorizedItemsBuilder subject) {
