@@ -19,6 +19,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.acegisecurity.AccessDeniedException;
+import org.apache.commons.lang.ObjectUtils;
 
 public class IndentedTopLevelItem implements TopLevelItem {
 	

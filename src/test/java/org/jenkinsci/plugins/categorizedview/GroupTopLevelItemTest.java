@@ -155,13 +155,13 @@ public class GroupTopLevelItemTest {
 	}
 
 	private TopLevelItem makeProjectWithColor(BallColor color) {
-		FreeStyleProject freeStyleProject = mock(FreeStyleProject.class);
+		FreeStyleProject freeStyleProject = makeMockProject();
 		when(freeStyleProject.getIconColor()).thenReturn(color);
 		return freeStyleProject;
 	}
 
 	private FreeStyleProject makeProjectWithHealth(int score) {
-		FreeStyleProject freeStyleProject = mock(FreeStyleProject.class);
+		FreeStyleProject freeStyleProject = makeMockProject();
 		HealthReport healthReport = new HealthReport();
 		healthReport.setScore(score);
 		when(freeStyleProject.getBuildHealth()).thenReturn(healthReport);
@@ -169,10 +169,16 @@ public class GroupTopLevelItemTest {
 	}
 
 	private TopLevelItem makeMockToGetBuild(DateTime parse, GetBuild getBuild) {
-		FreeStyleProject freeStyleProject = mock(FreeStyleProject.class);
+		FreeStyleProject freeStyleProject = makeMockProject();
 		FreeStyleBuild lastBuild = mock(FreeStyleBuild.class);
 		when(lastBuild.getTimestamp()).thenReturn(parse.toCalendar(Locale.getDefault()));
 		when(getBuild.getFrom(freeStyleProject)).thenReturn(lastBuild);
+		return freeStyleProject;
+	}
+
+	public FreeStyleProject makeMockProject() {
+		FreeStyleProject freeStyleProject = mock(FreeStyleProject.class);
+		when(freeStyleProject.getName()).thenReturn("");
 		return freeStyleProject;
 	}
 	
