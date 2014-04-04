@@ -27,8 +27,7 @@ public class CategorizedItemsBuilder {
 	}
 
 	private List<TopLevelItem> buildRegroupedItems(List<TopLevelItem> items) {
-		final List<IndentedTopLevelItem> groupedItems = buildCategorizedList(items);
-		return flattenList(groupedItems);
+		return flattenList(buildCategorizedList(items));
 	}
 	
 	private List<IndentedTopLevelItem> buildCategorizedList(List<TopLevelItem> itemsToCategorize) {
@@ -92,14 +91,6 @@ public class CategorizedItemsBuilder {
 			res.add(item);
 		
 		itemsData.put(item.getName(), item);
-		if (item.getNestedItems().size() > 0) {
-			List<IndentedTopLevelItem> nestedItems = item.getNestedItems();
-			Collections.sort(nestedItems, comparator);
-			for (IndentedTopLevelItem indentedTopLevelItem : nestedItems) {
-				res.add(indentedTopLevelItem.target);
-				itemsData.put(indentedTopLevelItem.target.getName(), indentedTopLevelItem);
-			}
-		}
 	}
 	
 	final Map<String, GroupTopLevelItem> groupItemByGroupName = new HashMap<String, GroupTopLevelItem>();
@@ -115,16 +106,6 @@ public class CategorizedItemsBuilder {
 			groupedItems.add(groupItemByGroupName.get(groupName));
 		}
 		return groupItemByGroupName.get(groupName);
-	}
-
-	public int getNestLevelFor(TopLevelItem identedItem) {
-		if (identedItem == null)
-			return 0;
-		return itemsData.get(identedItem.getName()).getNestLevel();
-	}
-
-	public String getCssFor(TopLevelItem identedItem) {
-		return itemsData.get(identedItem.getName()).getCss();
 	}
 
 	public String getGroupClassFor(TopLevelItem item) {

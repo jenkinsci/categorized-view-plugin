@@ -2,12 +2,12 @@ package org.jenkinsci.plugins.categorizedview;
 
 import hudson.Extension;
 import hudson.Util;
-import hudson.model.TopLevelItem;
-import hudson.model.ViewGroup;
 import hudson.model.Descriptor;
 import hudson.model.Descriptor.FormException;
 import hudson.model.ListView;
+import hudson.model.TopLevelItem;
 import hudson.model.ViewDescriptor;
+import hudson.model.ViewGroup;
 import hudson.util.CaseInsensitiveComparator;
 import hudson.util.DescribableList;
 import hudson.util.FormValidation;
@@ -107,16 +107,16 @@ public class CategorizedJobsView extends ListView {
 		return categorizationCriteria;
 	}
     
-    public String getCssFor(TopLevelItem item) {
-    	return categorizedItemsBuilder.getCssFor(item);
-    }
-    
     public String getGroupClassFor(TopLevelItem item) {
     	return categorizedItemsBuilder.getGroupClassFor(item);
     }
     
     public boolean hasLink(TopLevelItem item) {
     	return item.getShortUrl() != null;
+    }
+    
+    public boolean isGroupTopLevelItem(TopLevelItem item) {
+    	return item instanceof GroupTopLevelItem;
     }
 	
 	@Extension

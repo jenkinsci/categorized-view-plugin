@@ -14,6 +14,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.acegisecurity.AccessDeniedException;
@@ -55,9 +57,6 @@ public class IndentedTopLevelItem implements TopLevelItem {
 
 	private StringBuilder getBasicCss() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("padding-left:");
-		builder.append(String.valueOf((getNestLevel() + 1) * 20));
-		builder.append("px;");
 		builder.append(specificCss.toString());
 		return builder;
 	}
@@ -65,6 +64,8 @@ public class IndentedTopLevelItem implements TopLevelItem {
 	StringBuilder specificCss = new StringBuilder();
 	
 	public List<IndentedTopLevelItem> getNestedItems() {
+		final Comparator<IndentedTopLevelItem> comparator = new TopLevelItemComparator();
+		Collections.sort(nestedItems,comparator);
 		return nestedItems;
 	}
 	
@@ -74,101 +75,94 @@ public class IndentedTopLevelItem implements TopLevelItem {
 	}
 
 	public ItemGroup<? extends Item> getParent() {
-		throw new RuntimeException("NOT IMPLEMENTED");
+		return null;
 	}
 
 	public Collection<? extends Job> getAllJobs() {
-		throw new RuntimeException("NOT IMPLEMENTED");
+		return null;
 	}
 
 	public String getFullName() {
-		throw new RuntimeException("NOT IMPLEMENTED");
+		return null;
 	}
 
 	public String getDisplayName() {
-		throw new RuntimeException("NOT IMPLEMENTED");
+		return null;
 	}
 
 	public String getFullDisplayName() {
-		throw new RuntimeException("NOT IMPLEMENTED");
+		return null;
 	}
 
 	public String getRelativeNameFrom(ItemGroup g) {
-		throw new RuntimeException("NOT IMPLEMENTED");
+		return null;
 	}
 
 	public String getRelativeNameFrom(Item item) {
-		throw new RuntimeException("NOT IMPLEMENTED");
+		return null;
 	}
 
 	public String getUrl() {
-		throw new RuntimeException("NOT IMPLEMENTED");
+		return null;
 	}
 
 	public String getShortUrl() {
-		throw new RuntimeException("NOT IMPLEMENTED");
+		return null;
 	}
 
 	public String getAbsoluteUrl() {
-		throw new RuntimeException("NOT IMPLEMENTED");
+		return null;
 	}
 
 	public void onLoad(ItemGroup<? extends Item> parent, String name)
 			throws IOException {
-		throw new RuntimeException("NOT IMPLEMENTED");
 	}
 
 	public void onCopiedFrom(Item src) {
-		throw new RuntimeException("NOT IMPLEMENTED");
 	}
 
 	public void onCreatedFromScratch() {
-		throw new RuntimeException("NOT IMPLEMENTED");
 	}
 
 	public void save() throws IOException {
-		throw new RuntimeException("NOT IMPLEMENTED");
 	}
 
 	public void delete() throws IOException, InterruptedException {
-		throw new RuntimeException("NOT IMPLEMENTED");
 	}
 
 	public File getRootDir() {
-		throw new RuntimeException("NOT IMPLEMENTED");
+		return null;
 	}
 
 	public Search getSearch() {
-		throw new RuntimeException("NOT IMPLEMENTED");
+		return null;
 	}
 
 	public String getSearchName() {
-		throw new RuntimeException("NOT IMPLEMENTED");
+		return null;
 	}
 
 	public String getSearchUrl() {
-		throw new RuntimeException("NOT IMPLEMENTED");
+		return null;
 	}
 
 	public SearchIndex getSearchIndex() {
-		throw new RuntimeException("NOT IMPLEMENTED");
+		return null;
 	}
 
 	public ACL getACL() {
-		throw new RuntimeException("NOT IMPLEMENTED");
+		return null;
 	}
 
 	public void checkPermission(Permission permission)
 			throws AccessDeniedException {
-		throw new RuntimeException("NOT IMPLEMENTED");
 	}
 
 	public boolean hasPermission(Permission permission) {
-		throw new RuntimeException("NOT IMPLEMENTED");
+		return true;
 	}
 
 	public TopLevelItemDescriptor getDescriptor() {
-		throw new RuntimeException("NOT IMPLEMENTED");
+		return null;
 	}
-
 }

@@ -1,11 +1,12 @@
 package org.jenkinsci.plugins.categorizedview;
 
 import hudson.Extension;
+import hudson.views.JobColumn;
 import hudson.views.ListViewColumnDescriptor;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 
-public class IndentedJobColumn extends CategorizedJobsListViewColumn {
+public class IndentedJobColumn extends JobColumn {
 	@DataBoundConstructor
     public IndentedJobColumn() {
 		//

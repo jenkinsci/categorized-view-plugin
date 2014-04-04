@@ -1,25 +1,27 @@
 package org.jenkinsci.plugins.categorizedview;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
 import hudson.model.BallColor;
 import hudson.model.HealthReport;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
-import hudson.model.TopLevelItem;
-import hudson.model.TopLevelItemDescriptor;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Hudson;
 import hudson.model.Job;
 import hudson.model.Run;
-import hudson.search.SearchIndex;
+import hudson.model.TopLevelItem;
+import hudson.model.TopLevelItemDescriptor;
 import hudson.search.Search;
+import hudson.search.SearchIndex;
 import hudson.security.ACL;
 import hudson.security.Permission;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import jenkins.model.Jenkins;
 
 import org.acegisecurity.AccessDeniedException;
 import org.joda.time.DateTime;
@@ -181,11 +183,11 @@ public class GroupTopLevelItem  extends IndentedTopLevelItem  {
 	}
 
 	public String getUrl() {
-		return null;
+		return "";
 	}
 
 	public String getShortUrl() {
-		return null;
+		return "";
 	}
 
 	@Deprecated
@@ -221,8 +223,8 @@ public class GroupTopLevelItem  extends IndentedTopLevelItem  {
 		return true;
 	}
 
-	public Hudson getParent() {
-		return Hudson.getInstance();
+	public Jenkins getParent() {
+		return Jenkins.getInstance();
 	}
 
 	public TopLevelItemDescriptor getDescriptor() {
@@ -252,11 +254,11 @@ public class GroupTopLevelItem  extends IndentedTopLevelItem  {
 
 
 	public String getRelativeNameFrom(ItemGroup g) {
-		return null;
+		return getName();
 	}
 
 	public String getRelativeNameFrom(Item item) {
-		return null;
+		return getName();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -264,4 +266,12 @@ public class GroupTopLevelItem  extends IndentedTopLevelItem  {
 		return Collections.EMPTY_LIST;
 	}
 
+	public List<TopLevelItem> getGroupItems() {
+		List<IndentedTopLevelItem> nestedItems2 = getNestedItems();
+		List<TopLevelItem> top = new ArrayList<TopLevelItem>();
+		for (IndentedTopLevelItem topLevelItem : nestedItems2) {
+			top.add(topLevelItem.target);
+		}
+		return top;
+	}
 }

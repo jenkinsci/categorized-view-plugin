@@ -1,48 +1,53 @@
 function restoreJobGroupCollapseState(viewName, groupName) 
 {
 	var collapseState = getGroupState(viewName,groupName);
-	
+	handle=$$("#handle_"+groupName	).first();
 	if (collapseState == 'none') {
-		hideJobGroup(viewName,groupName)
+		hideJobGroup(handle, viewName,groupName)
 	}
 	else {
-		showJobGroup(viewName,groupName)
+		showJobGroup(handle, viewName,groupName)
 	}
 }
 
-function toggleJobGroupVisibility(handle, viewName, group) 
+function toggleJobGroupVisibility(viewName, group) 
 {
+	var handle=$$("#handle_"+group).first();
 	if (handle.getAttribute("collapseState") == "collapsed") {
-		showJobGroup(viewName,group)
+		showJobGroup(handle, viewName,group)
 	}
 	else {
-		hideJobGroup(viewName,group)
+		hideJobGroup(handle, viewName,group)
 	}
 }
 
-function hideJobGroup(viewName, group) {
-	$$("#handle_"+group).first().setAttribute("collapseState", "collapsed");
+function hideJobGroup(handle, viewName, group) {
+	handle.setAttribute("collapseState", "collapsed");
 	$$('.'+group).each(
 		function(e){
-			e.parentNode.style.display="none"
+			e.style.display="none"
 		}
 	)
 	setGroupState(viewName,group, "none");
 	var src = $$("#handle_"+group+" img").first().src;
-	src = src.replace(/images\/.*/,"images/collapsed.png")
+	src = src.replace(/collapse.png/,"expand.png")
 	$$("#handle_"+group+" img").first().src = src;
 }
 
-function showJobGroup(viewName, group) {
-	$$("#handle_"+group).first().setAttribute("collapseState", "expanded");
+function showJobGroup(handle, viewName, group) {
+	handle.setAttribute("collapseState", "expanded");
 	$$('.'+group).each(
 		function(e){
-			e.parentNode.style.display=""
+			e.style.display="";
+			$(e).setOpacity(0)
+			new YAHOO.util.Anim(e, {
+                opacity: { to:1 }
+            }, 0.2, YAHOO.util.Easing.easeIn).animate();
 		}
 	)
 	setGroupState(viewName, group, "");
-		var src = $$("#handle_"+group+" img").first().src;
-	src = src.replace(/images\/.*/,"images/expanded.png")
+	var src = $$("#handle_"+group+" img").first().src;
+	src = src.replace(/expand.png/,"collapse.png")
 	$$("#handle_"+group+" img").first().src = src;	
 }
 
