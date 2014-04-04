@@ -11,11 +11,11 @@ import java.util.List;
 import java.util.Map;
 
 public class CategorizedItemsBuilder {
-	final Comparator<IndentedTopLevelItem> comparator = new TopLevelItemComparator();
+	final Comparator<TopLevelItem> comparator = new TopLevelItemComparator();
 	private List<TopLevelItem> itemsToCategorize;
 	private List<GroupTopLevelItem> groupItems = new ArrayList<GroupTopLevelItem>();
 	private List<? extends CategorizationCriteria> groupingRules;
-	private Map<String, IndentedTopLevelItem> itemsData;
+	private Map<String, TopLevelItem> itemsData;
 
 	public CategorizedItemsBuilder(List<TopLevelItem> itemsToCategorize, List<? extends CategorizationCriteria> groupingRules) {
 		this.itemsToCategorize = itemsToCategorize;
@@ -30,11 +30,11 @@ public class CategorizedItemsBuilder {
 		return flattenList(buildCategorizedList(items));
 	}
 	
-	private List<IndentedTopLevelItem> buildCategorizedList(List<TopLevelItem> itemsToCategorize) {
-		final List<IndentedTopLevelItem> categorizedItems = new ArrayList<IndentedTopLevelItem>();
+	private List<TopLevelItem> buildCategorizedList(List<TopLevelItem> itemsToCategorize) {
+		final List<TopLevelItem> categorizedItems = new ArrayList<TopLevelItem>();
 		if (groupingRules.size()==0) {
 			for (TopLevelItem indentedTopLevelItem : itemsToCategorize) {
-				categorizedItems.add(new IndentedTopLevelItem(indentedTopLevelItem));
+				categorizedItems.add(indentedTopLevelItem);
 			}
 			return categorizedItems;
 		}
@@ -42,14 +42,14 @@ public class CategorizedItemsBuilder {
 		for (TopLevelItem item : itemsToCategorize) {
 			boolean categorized = tryToFitItemInCategory(groupingRules, categorizedItems, item);
 			if (!categorized)
-				categorizedItems.add(new IndentedTopLevelItem(item));
+				categorizedItems.add(item);
 		}
 		return categorizedItems;
 	}
 
 	private boolean tryToFitItemInCategory(
 			List<? extends CategorizationCriteria> groupingRules, 
-			final List<IndentedTopLevelItem> categorizedItems, 
+			final List<TopLevelItem> categorizedItems, 
 			TopLevelItem item) 
 	{
 		boolean grouped = false;
@@ -63,7 +63,7 @@ public class CategorizedItemsBuilder {
 	}
 
 	public void addItemToAppropriateGroup(
-			final List<IndentedTopLevelItem> categorizedItems,
+			final List<TopLevelItem> categorizedItems,
 			TopLevelItem item, CategorizationCriteria groupingRule) 
 	{
 		final String groupName = groupingRule.groupNameGivenItem(item);
@@ -71,12 +71,12 @@ public class CategorizedItemsBuilder {
 		groupTopLevelItem.add(item);
 	}
 
-	private List<TopLevelItem> flattenList(final List<IndentedTopLevelItem> groupedItems) 
+	private List<TopLevelItem> flattenList(final List<TopLevelItem> groupedItems) 
 	{
 		final ArrayList<TopLevelItem> res = new ArrayList<TopLevelItem>();
-		itemsData = new LinkedHashMap<String, IndentedTopLevelItem>();
+		itemsData = new LinkedHashMap<String, TopLevelItem>();
 		Collections.sort(groupedItems, comparator);
-		for (IndentedTopLevelItem item : groupedItems) {
+		for (TopLevelItem item : groupedItems) {
 			final String groupLabel = item.getName();
 			addNestedItemsAsIndentedItemsInTheResult(res, item,	groupLabel);
 		}
@@ -84,18 +84,15 @@ public class CategorizedItemsBuilder {
 		return res;
 	}
 
-	private void addNestedItemsAsIndentedItemsInTheResult(final ArrayList<TopLevelItem> res, IndentedTopLevelItem item, final String groupLabel) {
-		if (item.target != null)
-			res.add(item.target);
-		else
-			res.add(item);
+	private void addNestedItemsAsIndentedItemsInTheResult(final ArrayList<TopLevelItem> res, TopLevelItem item, final String groupLabel) {
+		res.add(item);
 		
 		itemsData.put(item.getName(), item);
 	}
 	
 	final Map<String, GroupTopLevelItem> groupItemByGroupName = new HashMap<String, GroupTopLevelItem>();
 	private GroupTopLevelItem getGroupForItemOrCreateIfNeeded(
-			final List<IndentedTopLevelItem> groupedItems,
+			final List<TopLevelItem> groupedItems,
 			final String groupName) 
 	{
 		boolean groupIsMissing = !groupItemByGroupName.containsKey(groupName);
@@ -109,7 +106,9 @@ public class CategorizedItemsBuilder {
 	}
 
 	public String getGroupClassFor(TopLevelItem item) {
-		return itemsData.get(item.getName()).getGroupClass();
+		if (item instanceof GroupTopLevelItem)
+			return ((GroupTopLevelItem)item).getGroupClass();
+		return "";
 	}
 
 	public List<GroupTopLevelItem> getGroupItems() {

@@ -165,10 +165,10 @@ public class CategorizedItemsBuilderTest {
 			sb.append("\n");
 			
 			if (identedItem instanceof GroupTopLevelItem) {
-				List<IndentedTopLevelItem> nestedItems = ((GroupTopLevelItem)identedItem).getNestedItems();
-				for (IndentedTopLevelItem indentedTopLevelItem : nestedItems) {
+				List<TopLevelItem> nestedItems = ((GroupTopLevelItem)identedItem).getNestedItems();
+				for (TopLevelItem item : nestedItems) {
 					sb.append("  ");
-					sb.append(indentedTopLevelItem.getName());
+					sb.append(item.getName());
 					sb.append("\n");
 				}
 			}

@@ -1,16 +1,16 @@
 package org.jenkinsci.plugins.categorizedview;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
 import hudson.model.BallColor;
 import hudson.model.HealthReport;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
-import hudson.model.Job;
-import hudson.model.Run;
 import hudson.model.TopLevelItem;
 import hudson.model.TopLevelItemDescriptor;
-import hudson.search.Search;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.Job;
+import hudson.model.Run;
 import hudson.search.SearchIndex;
+import hudson.search.Search;
 import hudson.security.ACL;
 import hudson.security.Permission;
 
@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import jenkins.model.Jenkins;
@@ -26,12 +27,19 @@ import jenkins.model.Jenkins;
 import org.acegisecurity.AccessDeniedException;
 import org.joda.time.DateTime;
 
-public class GroupTopLevelItem  extends IndentedTopLevelItem  {
+public class GroupTopLevelItem  implements TopLevelItem{
 	private final String groupName;
+
+	public TopLevelItem target;
+	private int nestLevel;
+	private final String groupClass;
+	protected List<TopLevelItem> nestedItems = new ArrayList<TopLevelItem>();
 	
-	public GroupTopLevelItem(String label) {
-		super(null, 0, label, "font-weight:bold;");
-		this.groupName = label;
+	public GroupTopLevelItem(String groupLabel) {
+		groupName = groupLabel;
+		this.nestLevel = 0;
+		this.groupClass = "g_"+groupLabel.replaceAll("[^a-zA-Z0-9_]","_")+groupLabel.hashCode();		
+		this.specificCss.append("font-weight:bold;");
 	}
 
 	public String getName() {
@@ -51,8 +59,7 @@ public class GroupTopLevelItem  extends IndentedTopLevelItem  {
 	}
 
 	public void add(TopLevelItem item) {
-		IndentedTopLevelItem subItem = new IndentedTopLevelItem(item, 1, groupName, "");
-		nestedItems.add(subItem);
+		nestedItems.add(item);
 	}
 
 	public void onLoad(ItemGroup<? extends Item> parent, String name) throws IOException {
@@ -75,9 +82,9 @@ public class GroupTopLevelItem  extends IndentedTopLevelItem  {
 	
 	public BallColor getIconColor() {
 		BallColor colorState = BallColor.NOTBUILT;
-		for (IndentedTopLevelItem items : getNestedItems()) {
-			if (items.target instanceof AbstractProject) {
-				BallColor projectColorState = ((AbstractProject)items.target).getIconColor();
+		for (TopLevelItem items : getNestedItems()) {
+			if (items instanceof AbstractProject) {
+				BallColor projectColorState = ((AbstractProject)items).getIconColor();
 				colorState = chooseNextColor(colorState, projectColorState);
 			}
 		}
@@ -126,9 +133,9 @@ public class GroupTopLevelItem  extends IndentedTopLevelItem  {
 
 	public Run getLastBuildOfType(GetBuild getBuild) {
 		AbstractBuild lastBuild = null;
-		for (IndentedTopLevelItem items : getNestedItems()) {
-			if (items.target instanceof AbstractProject) {
-				AbstractBuild build = getBuild.getFrom((AbstractProject)items.target);
+		for (TopLevelItem items : getNestedItems()) {
+			if (items instanceof AbstractProject) {
+				AbstractBuild build = getBuild.getFrom((AbstractProject)items);
 				if (lastBuild == null)
 					lastBuild = build;
 				else {
@@ -234,9 +241,9 @@ public class GroupTopLevelItem  extends IndentedTopLevelItem  {
 	public HealthReport getBuildHealth() {
 		HealthReport lowest = new HealthReport();
 		lowest.setScore(100);
-		for (IndentedTopLevelItem e : getNestedItems()) {
-			if (e.target instanceof AbstractProject) {
-				HealthReport buildHealth = ((AbstractProject)e.target).getBuildHealth();
+		for (TopLevelItem e : getNestedItems()) {
+			if (e instanceof AbstractProject) {
+				HealthReport buildHealth = ((AbstractProject)e).getBuildHealth();
 				if (buildHealth.getScore() < lowest.getScore())
 					lowest = buildHealth;
 			}
@@ -267,11 +274,38 @@ public class GroupTopLevelItem  extends IndentedTopLevelItem  {
 	}
 
 	public List<TopLevelItem> getGroupItems() {
-		List<IndentedTopLevelItem> nestedItems2 = getNestedItems();
-		List<TopLevelItem> top = new ArrayList<TopLevelItem>();
-		for (IndentedTopLevelItem topLevelItem : nestedItems2) {
-			top.add(topLevelItem.target);
-		}
-		return top;
+		return getNestedItems();
+	}
+
+	public int getNestLevel() {
+		return nestLevel;
+	}
+	
+	public boolean hasLink() {
+		if (target == null) return false;
+		return target.getShortUrl() != null;
+	}
+	
+	public String getGroupClass() {
+		return groupClass;
+	}
+
+	public String getCss() {
+		StringBuilder builder = getBasicCss();
+		return builder.toString();
+	}
+
+	private StringBuilder getBasicCss() {
+		StringBuilder builder = new StringBuilder();
+		builder.append(specificCss.toString());
+		return builder;
+	}
+
+	StringBuilder specificCss = new StringBuilder();
+	
+	public List<TopLevelItem> getNestedItems() {
+		final Comparator<TopLevelItem> comparator = new TopLevelItemComparator();
+		Collections.sort(nestedItems,comparator);
+		return nestedItems;
 	}
 }
