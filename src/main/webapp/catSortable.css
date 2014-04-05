@@ -34,6 +34,15 @@ td.categoryJobsColumn {
 	background-color: white;
 }
 
-.categoryJobs tr, .categoryJobs td, .categoryJobs table {
+ .categoryJobs table {
+ 	border: none;
+ }
+ 
+ .hidden-header {
+ 	border: none;
+ }
+
+.categoryJobs tr, .categoryJobs td {
 	border-color: #eee;
 }
+
