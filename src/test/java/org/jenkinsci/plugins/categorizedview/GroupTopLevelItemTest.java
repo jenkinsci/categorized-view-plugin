@@ -74,6 +74,14 @@ public class GroupTopLevelItemTest {
 	}
 	
 	@Test
+	public void getLastBuild_WithNullBuild_ShouldNotBreak() {
+		FreeStyleProject freeStyleProject = makeMockProject();
+		subject.add(makeProjectWithLastBuildDate(DateTime.parse("2014-03-28T18:00:00-03:00")));
+		subject.add(freeStyleProject);
+		assertEquals("2014-03-28T18:00:00.000-03:00", dateString(subject.getLastBuild().getTimestamp()));
+	}
+	
+	@Test
 	public void getLastSuccessfulBuild_ShouldReturnLastBuildInTheGroup() {
 		subject.add(makeProjectWithLastSuccessfulBuildDate(DateTime.parse("2014-03-28T18:00:00-03:00")));
 		assertEquals("2014-03-28T18:00:00.000-03:00", dateString(subject.getLastSuccessfulBuild().getTimestamp()));
@@ -171,7 +179,10 @@ public class GroupTopLevelItemTest {
 	private TopLevelItem makeMockToGetBuild(DateTime parse, GetBuild getBuild) {
 		FreeStyleProject freeStyleProject = makeMockProject();
 		FreeStyleBuild lastBuild = mock(FreeStyleBuild.class);
-		when(lastBuild.getTimestamp()).thenReturn(parse.toCalendar(Locale.getDefault()));
+		if (parse == null)
+			when(lastBuild.getTimestamp()).thenReturn(null);
+		else
+			when(lastBuild.getTimestamp()).thenReturn(parse.toCalendar(Locale.getDefault()));
 		when(getBuild.getFrom(freeStyleProject)).thenReturn(lastBuild);
 		return freeStyleProject;
 	}
