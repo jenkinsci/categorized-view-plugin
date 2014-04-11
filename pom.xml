@@ -7,7 +7,7 @@
   </parent>
 
   <artifactId>categorized-view</artifactId>
-  <version>1.5</version>
+  <version>1.6-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
   <repositories>
