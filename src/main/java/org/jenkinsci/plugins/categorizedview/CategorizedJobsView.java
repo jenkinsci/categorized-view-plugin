@@ -72,9 +72,7 @@ public class CategorizedJobsView extends ListView {
 		return this;
 	}
 	
-	
-	@Override
-	public List<TopLevelItem> getItems() {
+	public List<TopLevelItem> getGroupedItems() {
 		if (categorizationCriteria == null) 
 			categorizedItemsBuilder = new CategorizedItemsBuilder(super.getItems(), groupingRules);
 		else
@@ -82,7 +80,6 @@ public class CategorizedJobsView extends ListView {
 		
 		return categorizedItemsBuilder.getRegroupedItems();
 	}
-
 
 	public void migrateOldFormat() {
 		if (categorizationCriteria !=null)
