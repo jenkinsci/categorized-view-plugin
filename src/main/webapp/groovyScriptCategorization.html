@@ -1,0 +1,17 @@
+<p>Specify a groovy script that can create arbitrary categorizations based on jobs</p>
+<p>The groovy script has a single input: a variable named "jobToCategorize" which
+represents the job that requires categorization. The script must return either:</p>
+<ul>
+	<li><em>null</em> if the job can't be categorized at all</li>
+	<li><em>any string</em> representing the name of the category in which
+	the job fits.
+	</li>
+</ul>
+
+<b>Example</b>
+<pre>
+if (jobToCategorize.name.contains('apple') || jobToCategorize.name.contains('banana'))
+	return 'Fruits'
+
+return null
+</pre>
