@@ -46,7 +46,7 @@ THE SOFTWARE.
 	  	onClick="toggleJobGroupVisibility('${view.getViewName()}','${view.getGroupClassFor(job)}')">
 	  	<td>
 		  	<span id="handle_${view.getGroupClassFor(job)}">
-			   <img class="icon16x16" src="${rootURL}/images/16x16/collapse.png"/> 
+			   <img class="icon16x16" src="${rootURL}/plugin/categorized-view/images/collapse.png"/> 
 			</span>
 			<script type="text/javascript">
 				document.observe("dom:loaded", function() {

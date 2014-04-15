@@ -2,12 +2,12 @@ package org.jenkinsci.plugins.categorizedview;
 
 import hudson.Extension;
 import hudson.Util;
+import hudson.model.TopLevelItem;
+import hudson.model.ViewGroup;
 import hudson.model.Descriptor;
 import hudson.model.Descriptor.FormException;
 import hudson.model.ListView;
-import hudson.model.TopLevelItem;
 import hudson.model.ViewDescriptor;
-import hudson.model.ViewGroup;
 import hudson.util.CaseInsensitiveComparator;
 import hudson.util.DescribableList;
 import hudson.util.FormValidation;
@@ -15,6 +15,7 @@ import hudson.views.ListViewColumn;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -95,8 +96,15 @@ public class CategorizedJobsView extends ListView {
 	
 	@Override
 	protected void submit(StaplerRequest req) throws ServletException, FormException, IOException {
+		forcefullyDisableRecurseBecauseItCausesClassCastExceptionOnJenkins1_532_1(req);
 		super.submit(req);
 		categorizationCriteria.rebuildHetero(req, req.getSubmittedForm(), CategorizationCriteria.all(), "categorizationCriteria");
+	}
+
+
+	public void forcefullyDisableRecurseBecauseItCausesClassCastExceptionOnJenkins1_532_1(
+			StaplerRequest req) {
+		req.setAttribute("recurse", false);
 	}
     
     public DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>> getCategorizationCriteria() {

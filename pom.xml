@@ -3,7 +3,8 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.551</version><!-- which version of Jenkins is this plugin built against? -->
+    <!-- <version>1.551</version> -->
+    <version>1.532.1</version> 
   </parent>
 
   <artifactId>categorized-view</artifactId>

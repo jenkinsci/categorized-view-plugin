@@ -3,7 +3,7 @@ package hudson.model.View;
 t=namespace(lib.CategorizedviewTagLib)
 st=namespace("jelly:stapler")
 
-if (items.isEmpty()) {
+if (my.groupedItems.isEmpty()) {
     if (app.items.size() != 0) {
         set("views",my.owner.views);
         set("currentView",my);
