@@ -48,11 +48,13 @@ THE SOFTWARE.
 
 		 <tr style="border: none;" class="hidden-header">
           <j:forEach var="col" items="${columnExtensions}">
-             <st:include page="columnHeader.jelly" it="${col}" />
+             <th>
+	            <st:nbsp/>
+	          </th>
           </j:forEach>
           <th>
             <st:nbsp/>
-          </th>
+          </th>	
         </tr>
         <j:forEach var="job" items="${jobs}">
           <t:projectViewRow/>
