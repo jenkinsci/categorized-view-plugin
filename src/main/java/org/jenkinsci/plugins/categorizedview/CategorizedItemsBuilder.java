@@ -23,7 +23,7 @@ public class CategorizedItemsBuilder {
 	}
 	
 	public List<TopLevelItem> getRegroupedItems() {
-		return buildRegroupedItems(itemsToCategorize);
+		return  buildRegroupedItems(itemsToCategorize);
 	}
 
 	private List<TopLevelItem> buildRegroupedItems(List<TopLevelItem> items) {
@@ -54,8 +54,9 @@ public class CategorizedItemsBuilder {
 	{
 		boolean grouped = false;
 		for (CategorizationCriteria groupingRule : groupingRules) {
-			if (groupingRule.groupNameGivenItem(item)!=null) {
-				addItemToAppropriateGroup(categorizedItems, item, groupingRule);
+			String groupNameGivenItem = groupingRule.groupNameGivenItem(item);
+			if (groupNameGivenItem!=null) {
+				addItemToAppropriateGroup(groupNameGivenItem, categorizedItems, item, groupingRule);
 				grouped = true;
 			}
 		}
@@ -63,10 +64,10 @@ public class CategorizedItemsBuilder {
 	}
 
 	public void addItemToAppropriateGroup(
+			final String groupName,
 			final List<TopLevelItem> categorizedItems,
 			TopLevelItem item, CategorizationCriteria groupingRule) 
 	{
-		final String groupName = groupingRule.groupNameGivenItem(item);
 		GroupTopLevelItem groupTopLevelItem = getGroupForItemOrCreateIfNeeded(categorizedItems, groupName);
 		groupTopLevelItem.add(item);
 	}
