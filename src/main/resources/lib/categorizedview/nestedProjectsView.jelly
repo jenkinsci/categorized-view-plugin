@@ -26,25 +26,13 @@ THE SOFTWARE.
 <j:jelly xmlns:j="jelly:core" xmlns:x="jelly:xml" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:c="/lib/categorizedview">
   <st:documentation>
-    Renders a list of jobs and their key information.
+    Renders a list of grouped jobs.
 
     <st:attribute name="jobs" use="required" trim="Collection">
       Items to show.
     </st:attribute>
-    <st:attribute name="jobBaseUrl" type="String">
-      Deprecated. Using this attribute has no effect.
-    </st:attribute>
-    <st:attribute name="views" type="Collection&lt;View>">
-      If non-null, render nested views.
-    </st:attribute>
-    <st:attribute name="indenter" type="hudson.Indenter">
-      Optional Indenter instance used to indent items.
-    </st:attribute>
     <st:attribute name="columnExtensions" type="Collection&lt;hudson.views.ListViewColumn>">
       List view columns to render. If omitted, the default ones from ListView.getDefaultColumns() are used.
-    </st:attribute>
-    <st:attribute name="itemGroup" use="optional" type="hudson.model.ItemGroup">
-      The containing group, for purposes of name calculation.
     </st:attribute>
   </st:documentation>
 
@@ -66,10 +54,8 @@ THE SOFTWARE.
             <st:nbsp/>
           </th>
         </tr>
-        
         <j:forEach var="job" items="${jobs}">
-          <j:set var="relativeLinkToJob" value="${h.getRelativeLinkTo(job)}"/>
-          <t:projectViewRow jobBaseUrl="${relativeLinkToJob.substring(0, relativeLinkToJob.length() - job.shortUrl.length())}"/>
+          <t:projectViewRow/>
         </j:forEach>
       </table>
     </j:if>

@@ -85,8 +85,7 @@ THE SOFTWARE.
           <t:projectViewNested />
         </j:forEach>
         <j:forEach var="job" items="${jobs}">
-          <j:set var="relativeLinkToJob" value="${h.getRelativeLinkTo(job)}"/>
-          <c:catProjectViewRow jobBaseUrl="${relativeLinkToJob.substring(0, relativeLinkToJob.length() - job.shortUrl.length())}"/>
+          <c:catProjectViewRow/>
         </j:forEach>
       </table>
       <t:iconSize><t:rssBar/></t:iconSize>
