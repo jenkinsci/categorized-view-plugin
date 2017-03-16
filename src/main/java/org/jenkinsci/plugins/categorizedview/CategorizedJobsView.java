@@ -90,7 +90,6 @@ public class CategorizedJobsView extends ListView {
 			categorizationCriteria = new DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>>(this, groupingRules);
 			groupingRules.clear();
 		}
-		
 	}
 	
 	@Override

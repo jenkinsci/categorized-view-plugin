@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.categorizedview;
 import hudson.model.BallColor;
+
 import hudson.model.HealthReport;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
@@ -27,6 +28,7 @@ import jenkins.model.Jenkins;
 import org.acegisecurity.AccessDeniedException;
 import org.joda.time.DateTime;
 
+@SuppressWarnings("rawtypes")
 public class GroupTopLevelItem  implements TopLevelItem{
 	private final String groupName;
 

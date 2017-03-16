@@ -31,21 +31,12 @@ THE SOFTWARE.
     <st:attribute name="jobs" use="required" trim="Collection">
       Items to show.
     </st:attribute>
-    <st:attribute name="columnExtensions" type="Collection&lt;hudson.views.ListViewColumn>">
-      List view columns to render. If omitted, the default ones from ListView.getDefaultColumns() are used.
-    </st:attribute>
   </st:documentation>
 
-  <t:setIconSize/>
   <div class="dashboard">
-    <j:if test="${columnExtensions==null}">
-        <j:invokeStatic var="columnExtensions" className="hudson.model.ListView" method="getDefaultColumns"/>
-    </j:if>
-
     <j:if test="${!empty(jobs) or !empty(attrs.views)}">
       <!-- project list -->
       <table id="projectstatus_${job.name}" class="pane bigtable">
-
 		 <tr style="border: none;" class="hidden-header">
           <j:forEach var="col" items="${columnExtensions}">
              <th>
@@ -57,7 +48,14 @@ THE SOFTWARE.
           </th>	
         </tr>
         <j:forEach var="job" items="${jobs}">
-          <t:projectViewRow/>
+		  <tr id="job_${job.name}" class="${job.disabled?'disabledJob':null}">
+		    <j:forEach var="col" items="${columnExtensions}">
+		      <st:include page="column.jelly" it="${col}"/>
+		    </j:forEach>
+		    <td>
+		      <st:nbsp/>
+		    </td>
+		  </tr>
         </j:forEach>
       </table>
     </j:if>

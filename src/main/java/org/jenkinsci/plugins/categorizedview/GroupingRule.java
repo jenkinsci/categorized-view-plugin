@@ -1,21 +1,29 @@
 package org.jenkinsci.plugins.categorizedview;
 
-import hudson.Extension;
-import hudson.model.TopLevelItem;
-import hudson.model.Descriptor;
-
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+
+import hudson.Extension;
+import hudson.model.Descriptor;
+import hudson.model.TopLevelItem;
 
 public class GroupingRule extends CategorizationCriteria
 {
 	private final String groupRegex;
 	private final String namingRule;
+	private boolean useDisplayName = false;
 	
 	@DataBoundConstructor
+	public GroupingRule(String groupRegex, String namingRule, boolean useDisplayName) {
+		this.groupRegex = groupRegex;
+		this.namingRule = namingRule;
+		this.useDisplayName = useDisplayName;
+	}
+	
 	public GroupingRule(String groupRegex, String namingRule) {
 		this.groupRegex = groupRegex;
 		this.namingRule = namingRule;
+		this.useDisplayName = false;
 	}
 
 	@Override
@@ -24,14 +32,23 @@ public class GroupingRule extends CategorizationCriteria
 			return null;
 		
 		final String groupNamingRule = StringUtils.isEmpty(getNamingRule())?"$1":getNamingRule();
-		return item.getName().replaceAll(getNormalizedGroupRegex(), groupNamingRule);
+		return getItemName(item).replaceAll(getNormalizedGroupRegex(), groupNamingRule);
 	}
-	
 	private boolean isOnGroup(TopLevelItem item) {
 		if (StringUtils.isEmpty(getGroupRegex())) 
 			return false;
 		
-		return item.getName().matches(getNormalizedGroupRegex()); 
+		return getItemName(item).matches(getNormalizedGroupRegex()); 
+	}
+	
+	private String getItemName(TopLevelItem item) {
+		if (!useDisplayName)
+			return item.getName();
+		
+		if (item.getDisplayName() == null)
+			return item.getName();
+		
+		return item.getDisplayName();
 	}
 
 	String getNormalizedGroupRegex() {
@@ -65,5 +82,9 @@ public class GroupingRule extends CategorizationCriteria
 
 	public String getNamingRule() {
 		return namingRule;
+	}
+	
+	public boolean getUseDisplayName() {
+		return useDisplayName;
 	}
 }

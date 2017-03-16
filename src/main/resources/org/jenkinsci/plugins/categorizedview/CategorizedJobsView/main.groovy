@@ -2,8 +2,8 @@ package hudson.model.View;
 
 t=namespace(lib.CategorizedviewTagLib)
 st=namespace("jelly:stapler")
-
-if (my.groupedItems.isEmpty()) {
+gi=my.groupedItems
+if (gi.isEmpty()) {
     if (app.items.size() != 0) {
         set("views",my.owner.views);
         set("currentView",my);
@@ -11,7 +11,7 @@ if (my.groupedItems.isEmpty()) {
     }
     include(my,"noJob.jelly");
 } else {
-    t.catProjectView(jobs: my.groupedItems, showViewTabs: true, columnExtensions: my.columns, indenter: my.indenter, itemGroup: my.owner.itemGroup) {
+    t.catProjectView(jobs: gi, showViewTabs: true, columnExtensions: my.columns, indenter: my.indenter, itemGroup: my.owner.itemGroup) {
         set("views",my.owner.views);
         set("currentView",my);
         if (my.owner.class == hudson.model.MyViewsProperty.class) {

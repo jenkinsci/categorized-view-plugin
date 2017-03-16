@@ -18,6 +18,7 @@ import org.jenkinsci.plugins.categorizedview.GroupTopLevelItem.GetBuild;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
+@SuppressWarnings("rawtypes")
 public class GroupTopLevelItemTest {
 	GroupTopLevelItem subject = new GroupTopLevelItem("");
 	@Test

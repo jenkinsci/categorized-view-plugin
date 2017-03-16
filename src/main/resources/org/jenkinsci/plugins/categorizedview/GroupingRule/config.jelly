@@ -5,5 +5,8 @@
 	<f:entry title="${%Naming Rule}"  help="/plugin/categorized-view/namingRule.html">
 		<f:textbox name="namingRule" field="namingRule"/>
 	</f:entry>
+	<f:entry title="${%Categorize by display name?}" help="/plugin/categorized-view/useDisplayName.html">
+		<f:checkbox name="useDisplayName" field="useDisplayName" />
+	</f:entry>	
 	<f:entry title=""> <div align="right"> </div> </f:entry>
 </j:jelly>
