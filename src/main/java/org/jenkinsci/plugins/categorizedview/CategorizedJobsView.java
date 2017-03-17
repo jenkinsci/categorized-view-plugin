@@ -30,6 +30,7 @@ import org.kohsuke.stapler.StaplerRequest;
 
 public class CategorizedJobsView extends ListView {
 	private List<GroupingRule> groupingRules = new ArrayList<GroupingRule>();
+	private String regexToIgnoreOnColorComputing = "";
 
 	private DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>> categorizationCriteria;
 	
@@ -74,17 +75,24 @@ public class CategorizedJobsView extends ListView {
 	
 	public List<TopLevelItem> getGroupedItems() {
 		if (categorizationCriteria == null) 
-			categorizedItemsBuilder = new CategorizedItemsBuilder(super.getItems(), groupingRules);
+			categorizedItemsBuilder = new CategorizedItemsBuilder(super.getItems(), groupingRules, getRegexToIgnoreOnColorComputing());
 		else
-			categorizedItemsBuilder = new CategorizedItemsBuilder(super.getItems(), categorizationCriteria.toList());
+			categorizedItemsBuilder = new CategorizedItemsBuilder(super.getItems(), categorizationCriteria.toList(), getRegexToIgnoreOnColorComputing());
 		
 		return categorizedItemsBuilder.getRegroupedItems();
+	}
+	
+	public String getRegexToIgnoreOnColorComputing() {
+		if (regexToIgnoreOnColorComputing == null) 
+			return "";
+		return regexToIgnoreOnColorComputing;
 	}
 
 	public void migrateOldFormat() {
 		if (categorizationCriteria !=null)
 			return;
-		if (groupingRules ==null || groupingRules.size() == 0)
+		
+		if (groupingRules == null || groupingRules.size() == 0)
 			categorizationCriteria = new DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>>(this);
 		else {
 			categorizationCriteria = new DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>>(this, groupingRules);
@@ -97,11 +105,10 @@ public class CategorizedJobsView extends ListView {
 		forcefullyDisableRecurseBecauseItCausesClassCastExceptionOnJenkins1_532_1(req);
 		super.submit(req);
 		categorizationCriteria.rebuildHetero(req, req.getSubmittedForm(), CategorizationCriteria.all(), "categorizationCriteria");
+		regexToIgnoreOnColorComputing = req.getParameter("regexToIgnoreOnColorComputing");
 	}
 
-
-	public void forcefullyDisableRecurseBecauseItCausesClassCastExceptionOnJenkins1_532_1(
-			StaplerRequest req) {
+	public void forcefullyDisableRecurseBecauseItCausesClassCastExceptionOnJenkins1_532_1( StaplerRequest req) {
 		req.setAttribute("recurse", false);
 	}
     

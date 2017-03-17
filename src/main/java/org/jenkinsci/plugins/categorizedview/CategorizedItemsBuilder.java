@@ -16,12 +16,18 @@ public class CategorizedItemsBuilder {
 	private List<GroupTopLevelItem> groupItems = new ArrayList<GroupTopLevelItem>();
 	private List<? extends CategorizationCriteria> groupingRules;
 	private Map<String, TopLevelItem> itemsData;
+	private String regexToIgnoreOnColorComputing;
 
 	public CategorizedItemsBuilder(List<TopLevelItem> itemsToCategorize, List<? extends CategorizationCriteria> groupingRules) {
-		this.itemsToCategorize = itemsToCategorize;
-		this.groupingRules = groupingRules;
+		this(itemsToCategorize, groupingRules, "");
 	}
 	
+	public CategorizedItemsBuilder(List<TopLevelItem> items, List<? extends CategorizationCriteria> groupingRules, String regexToIgnoreOnColorComputing) {
+		this.itemsToCategorize = items;
+		this.groupingRules = groupingRules;
+		this.regexToIgnoreOnColorComputing = regexToIgnoreOnColorComputing;
+	}
+
 	public List<TopLevelItem> getRegroupedItems() {
 		return  buildRegroupedItems(itemsToCategorize);
 	}
@@ -98,7 +104,7 @@ public class CategorizedItemsBuilder {
 	{
 		boolean groupIsMissing = !groupItemByGroupName.containsKey(groupName);
 		if (groupIsMissing) {
-			GroupTopLevelItem value = new GroupTopLevelItem(groupName);
+			GroupTopLevelItem value = new GroupTopLevelItem(groupName, regexToIgnoreOnColorComputing);
 			groupItems.add(value);
 			groupItemByGroupName.put(groupName, value);
 			groupedItems.add(groupItemByGroupName.get(groupName));

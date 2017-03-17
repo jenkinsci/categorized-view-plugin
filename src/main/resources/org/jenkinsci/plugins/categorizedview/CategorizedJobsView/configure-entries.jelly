@@ -88,9 +88,13 @@ THE SOFTWARE.
 	</f:section>
 
 	<f:section title="${%Job group categorization}">
+		<f:entry title="${%Ignore jobs matching the following regex on group icon color and failre computation}">
+			<f:textbox name="regexToIgnoreOnColorComputing" field="regexToIgnoreOnColorComputing"/>
+		</f:entry>	
 		<f:block>
 			<f:repeatableHeteroProperty field="categorizationCriteria" hasHeader="true" addCaption="${%Add new categorization criteria}"/>
 		</f:block>
+		
 	</f:section>
 
 	<f:section title="${%Columns}">

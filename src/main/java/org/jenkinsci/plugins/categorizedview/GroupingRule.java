@@ -52,7 +52,7 @@ public class GroupingRule extends CategorizationCriteria
 	}
 
 	String getNormalizedGroupRegex() {
-		return normalizeRegex(getGroupRegex());
+		return Utils.normalizeRegex(getGroupRegex());
 	}
 	
 	@Extension
@@ -63,19 +63,6 @@ public class GroupingRule extends CategorizationCriteria
 		}
 	}
 	
-	private static String normalizeRegex(String groupRegex) {
-		if (groupRegex == null) return "";
-		String regex = groupRegex;
-		if (!regex.startsWith(".*"))
-			regex =".*"+regex;
-		if (!regex.endsWith(".*"))
-			regex +=".*";
-		if (!regex.contains("(")) {
-			regex = ".*("+groupRegex+").*";
-		}
-		return regex;
-	}
-
 	public String getGroupRegex() {
 		return groupRegex;
 	}

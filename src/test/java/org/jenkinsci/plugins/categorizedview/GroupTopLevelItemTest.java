@@ -20,7 +20,7 @@ import org.junit.Test;
 
 @SuppressWarnings("rawtypes")
 public class GroupTopLevelItemTest {
-	GroupTopLevelItem subject = new GroupTopLevelItem("");
+	GroupTopLevelItem subject = new GroupTopLevelItem("",".*ignore-me.*");
 	@Test
 	public void getBuildHealth_returnsWorstHealthValue() {
 		subject.add(makeProjectWithHealth(80));
@@ -43,6 +43,9 @@ public class GroupTopLevelItemTest {
 		assertEquals(BallColor.BLUE, subject.getIconColor());
 		
 		subject.add(makeProjectWithColor(BallColor.DISABLED));
+		assertEquals(BallColor.BLUE, subject.getIconColor());
+		
+		subject.add(makeProjectWithColor(BallColor.ABORTED, "ignore-me"));
 		assertEquals(BallColor.BLUE, subject.getIconColor());
 		
 		subject.add(makeProjectWithColor(BallColor.ABORTED));
@@ -162,9 +165,13 @@ public class GroupTopLevelItemTest {
 			}
 		});
 	}
-
+	
 	private TopLevelItem makeProjectWithColor(BallColor color) {
-		FreeStyleProject freeStyleProject = makeMockProject();
+		return makeProjectWithColor(color, "");
+	}
+
+	private TopLevelItem makeProjectWithColor(BallColor color, String projName) {
+		FreeStyleProject freeStyleProject = makeMockProject(projName);
 		when(freeStyleProject.getIconColor()).thenReturn(color);
 		return freeStyleProject;
 	}
@@ -188,9 +195,13 @@ public class GroupTopLevelItemTest {
 		return freeStyleProject;
 	}
 
-	public FreeStyleProject makeMockProject() {
+	private FreeStyleProject makeMockProject() {
+		return makeMockProject("");
+	}
+
+	public FreeStyleProject makeMockProject(String projName) {
 		FreeStyleProject freeStyleProject = mock(FreeStyleProject.class);
-		when(freeStyleProject.getName()).thenReturn("");
+		when(freeStyleProject.getName()).thenReturn(projName);
 		return freeStyleProject;
 	}
 	

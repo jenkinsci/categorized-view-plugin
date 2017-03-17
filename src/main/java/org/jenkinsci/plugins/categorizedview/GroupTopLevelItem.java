@@ -36,9 +36,12 @@ public class GroupTopLevelItem  implements TopLevelItem{
 	private int nestLevel;
 	private final String groupClass;
 	protected List<TopLevelItem> nestedItems = new ArrayList<TopLevelItem>();
+
+	private String regexToIgnoreOnColorComputing;
 	
-	public GroupTopLevelItem(String groupLabel) {
+	public GroupTopLevelItem(String groupLabel, String regexToIgnoreOnColorComputing) {
 		groupName = groupLabel;
+		this.regexToIgnoreOnColorComputing = regexToIgnoreOnColorComputing;
 		this.nestLevel = 0;
 		this.groupClass = "g_"+groupLabel.replaceAll("[^a-zA-Z0-9_]","_")+groupLabel.hashCode();		
 		this.specificCss.append("font-weight:bold;");
@@ -84,9 +87,11 @@ public class GroupTopLevelItem  implements TopLevelItem{
 	
 	public BallColor getIconColor() {
 		BallColor colorState = BallColor.NOTBUILT;
-		for (TopLevelItem items : getNestedItems()) {
-			if (items instanceof AbstractProject) {
-				BallColor projectColorState = ((AbstractProject)items).getIconColor();
+		for (TopLevelItem item : getNestedItems()) {
+			if (item instanceof AbstractProject) {
+				if (item.getName().matches(regexToIgnoreOnColorComputing))
+					continue;
+				BallColor projectColorState = ((AbstractProject)item).getIconColor();
 				colorState = chooseNextColor(colorState, projectColorState);
 			}
 		}
