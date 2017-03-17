@@ -32,7 +32,6 @@ import org.joda.time.DateTime;
 public class GroupTopLevelItem  implements TopLevelItem{
 	private final String groupName;
 
-	public TopLevelItem target;
 	private int nestLevel;
 	private final String groupClass;
 	protected List<TopLevelItem> nestedItems = new ArrayList<TopLevelItem>();
@@ -291,8 +290,7 @@ public class GroupTopLevelItem  implements TopLevelItem{
 	}
 	
 	public boolean hasLink() {
-		if (target == null) return false;
-		return target.getShortUrl() != null;
+		return false;
 	}
 	
 	public String getGroupClass() {

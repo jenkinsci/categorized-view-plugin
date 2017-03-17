@@ -35,7 +35,6 @@ abstract public class CategorizedJobsListViewColumn extends ListViewColumn {
 		return r;
 	}
 
-	@SuppressWarnings("unchecked")
 	private static final List<Class<? extends ListViewColumn>> DEFAULT_CATEGORIZED_COLUMNS = Arrays.asList(
 	        StatusColumn.class,
 	        WeatherColumn.class,
