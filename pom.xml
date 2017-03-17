@@ -130,11 +130,4 @@
 			</plugin>
 		</plugins>
 	</build>
-    <distributionManagement>
-        <repository>
-            <id>objective-internal-releases</id>
-            <name>Objective Internal Releases</name>
-            <url>http://repo:8080/archiva/repository/internal</url>
-        </repository>
-    </distributionManagement>
 </project>
