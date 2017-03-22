@@ -6,8 +6,6 @@ import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.model.TopLevelItem;
 import hudson.model.TopLevelItemDescriptor;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
 import hudson.model.Job;
 import hudson.model.Run;
 import hudson.search.SearchIndex;
@@ -37,12 +35,12 @@ public class GroupTopLevelItem  implements TopLevelItem{
 	protected List<TopLevelItem> nestedItems = new ArrayList<TopLevelItem>();
 
 	private String regexToIgnoreOnColorComputing;
-	
+
 	public GroupTopLevelItem(String groupLabel, String regexToIgnoreOnColorComputing) {
 		groupName = groupLabel;
 		this.regexToIgnoreOnColorComputing = regexToIgnoreOnColorComputing;
 		this.nestLevel = 0;
-		this.groupClass = "g_"+groupLabel.replaceAll("[^a-zA-Z0-9_]","_")+groupLabel.hashCode();		
+		this.groupClass = "g_"+groupLabel.replaceAll("[^a-zA-Z0-9_]","_")+groupLabel.hashCode();
 		this.specificCss.append("font-weight:bold;");
 	}
 
@@ -83,65 +81,65 @@ public class GroupTopLevelItem  implements TopLevelItem{
 
 	public void checkPermission(Permission permission) throws AccessDeniedException {
 	}
-	
+
 	public BallColor getIconColor() {
 		BallColor colorState = BallColor.NOTBUILT;
 		for (TopLevelItem item : getNestedItems()) {
-			if (item instanceof AbstractProject) {
+			if (item instanceof Job) {
 				if (item.getName().matches(regexToIgnoreOnColorComputing))
 					continue;
-				BallColor projectColorState = ((AbstractProject)item).getIconColor();
+				BallColor projectColorState = ((Job)item).getIconColor();
 				colorState = chooseNextColor(colorState, projectColorState);
 			}
 		}
 		return colorState;
 	}
-	
+
 	public Run getLastBuild() {
 		return getLastBuildOfType(new GetBuild() {
-			public AbstractBuild getFrom(AbstractProject project) {
+			public Run getFrom(Job project) {
 				return project.getLastBuild();
 			}
 		});
     }
-	
+
 	public Run getLastSuccessfulBuild() {
 		return getLastBuildOfType(new GetBuild() {
-			public AbstractBuild getFrom(AbstractProject project) {
-				return (AbstractBuild) project.getLastSuccessfulBuild();
+			public Run getFrom(Job project) {
+				return (Run) project.getLastSuccessfulBuild();
 			}
 		});
 	}
-	
+
 	public Run getLastStableBuild() {
 		return getLastBuildOfType(new GetBuild() {
-			public AbstractBuild getFrom(AbstractProject project) {
-				return (AbstractBuild) project.getLastStableBuild();
+			public Run getFrom(Job project) {
+				return (Run) project.getLastStableBuild();
 			}
 		});
 	}
 
 	public Run getLastFailedBuild() {
 		return getLastBuildOfType(new GetBuild() {
-			public AbstractBuild getFrom(AbstractProject project) {
-				return (AbstractBuild) project.getLastFailedBuild();
+			public Run getFrom(Job project) {
+				return (Run) project.getLastFailedBuild();
 			}
 		});
 	}
-	
+
 	public Run getLastUnsuccessfulBuild() {
 		return getLastBuildOfType(new GetBuild() {
-			public AbstractBuild getFrom(AbstractProject project) {
-				return (AbstractBuild) project.getLastUnsuccessfulBuild();
+			public Run getFrom(Job project) {
+				return (Run) project.getLastUnsuccessfulBuild();
 			}
 		});
 	}
 
 	public Run getLastBuildOfType(GetBuild getBuild) {
-		AbstractBuild lastBuild = null;
+		Run lastBuild = null;
 		for (TopLevelItem item : getNestedItems()) {
-			if (item instanceof AbstractProject) {
-				AbstractBuild build = getBuild.getFrom((AbstractProject)item);
+			if (item instanceof Job) {
+				Run build = getBuild.getFrom((Job)item);
 				if (lastBuild == null)
 					lastBuild = build;
 				if (build == null)
@@ -155,9 +153,9 @@ public class GroupTopLevelItem  implements TopLevelItem{
 		}
 		return lastBuild;
 	}
-	
+
 	static interface GetBuild {
-		public AbstractBuild getFrom(AbstractProject project);
+		public Run getFrom(Job project);
 	}
 
 	public BallColor chooseNextColor(BallColor res, BallColor iconColor) {
@@ -250,8 +248,8 @@ public class GroupTopLevelItem  implements TopLevelItem{
 		HealthReport lowest = new HealthReport();
 		lowest.setScore(100);
 		for (TopLevelItem e : getNestedItems()) {
-			if (e instanceof AbstractProject) {
-				HealthReport buildHealth = ((AbstractProject)e).getBuildHealth();
+			if (e instanceof Job) {
+				HealthReport buildHealth = ((Job)e).getBuildHealth();
 				if (buildHealth.getScore() < lowest.getScore())
 					lowest = buildHealth;
 			}
@@ -288,11 +286,11 @@ public class GroupTopLevelItem  implements TopLevelItem{
 	public int getNestLevel() {
 		return nestLevel;
 	}
-	
+
 	public boolean hasLink() {
 		return false;
 	}
-	
+
 	public String getGroupClass() {
 		return groupClass;
 	}
@@ -309,7 +307,7 @@ public class GroupTopLevelItem  implements TopLevelItem{
 	}
 
 	StringBuilder specificCss = new StringBuilder();
-	
+
 	public List<TopLevelItem> getNestedItems() {
 		final Comparator<TopLevelItem> comparator = new TopLevelItemComparator();
 		Collections.sort(nestedItems,comparator);
