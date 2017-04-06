@@ -12,7 +12,7 @@
 	</properties>
 
 	<artifactId>categorized-view</artifactId>
-	<version>1.10-SNAPSHOT</version>
+	<version>1.10</version>
 	<packaging>hpi</packaging>
 
 	<repositories>
@@ -39,7 +39,7 @@
 		<connection>scm:git:ssh://github.com/jenkinsci/categorized-view-plugin.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/jenkinsci/categorized-view-plugin.git</developerConnection>
 		<url>https://github.com/jenkinsci/categorized-view-plugin</url>
-	  <tag>HEAD</tag>
+	  <tag>categorized-view-1.10</tag>
   </scm>
 	<url>https://wiki.jenkins-ci.org/display/JENKINS/Categorized+Jobs+View</url>
 	<dependencies>
