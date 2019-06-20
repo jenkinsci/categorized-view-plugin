@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.sf.json.JSONObject;
 
 abstract public class CategorizedJobsListViewColumn extends ListViewColumn {
 	public static List<ListViewColumn> createDefaultCategorizedInitialColumnList() {
@@ -24,9 +25,10 @@ abstract public class CategorizedJobsListViewColumn extends ListViewColumn {
 
 		for (Class<? extends ListViewColumn> d : CategorizedJobsListViewColumn.DEFAULT_CATEGORIZED_COLUMNS) {
 			Descriptor<ListViewColumn> des = all.find(d);
+                        final JSONObject emptyJSON = new JSONObject();
 			if (des != null) {
 				try {
-					r.add(des.newInstance(null, null));
+					r.add(des.newInstance(null, emptyJSON));
 				} catch (FormException e) {
 					LOGGER.log(Level.WARNING, "Failed to instantiate " + des.clazz, e);
 				}

@@ -229,7 +229,7 @@ public class GroupTopLevelItem  implements TopLevelItem{
 	}
 
 	public ACL getACL() {
-		return null;
+		return Jenkins.getInstance().getAuthorizationStrategy().getRootACL();
 	}
 
 	public boolean hasPermission(Permission permission) {
