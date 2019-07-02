@@ -122,7 +122,7 @@ public class CategorizedJobsView extends ListView {
     }
     
     public boolean hasLink(TopLevelItem item) {
-    	return item.getShortUrl() != null;
+    	return item.getUrl() != null;
     }
     
     public boolean isGroupTopLevelItem(TopLevelItem item) {
