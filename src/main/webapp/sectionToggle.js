@@ -52,7 +52,7 @@ function showJobGroup(handle, viewName, group) {
 }
 
 function getGroupStates(viewName) {
-	var stateCookie = YAHOO.util.Cookie.get("jenkins.categorized-view-collapse-state_"+viewName);
+	var stateCookie = localStorage.getItem("jenkins.categorized-view-collapse-state_"+viewName);
 	if (stateCookie == null)
 		return {};
 	return JSON.parse(stateCookie);
@@ -72,5 +72,5 @@ function setGroupState(viewName, groupName, state)
 {
 	var groupStates = getGroupStates(viewName)
 	groupStates[groupName]=state
-	YAHOO.util.Cookie.set("jenkins.categorized-view-collapse-state_"+viewName, Object.toJSON(groupStates));
+	localStorage.setItem("jenkins.categorized-view-collapse-state_"+viewName, Object.toJSON(groupStates));
 }
