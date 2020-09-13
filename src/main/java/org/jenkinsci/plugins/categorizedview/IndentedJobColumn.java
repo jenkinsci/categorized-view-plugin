@@ -16,7 +16,7 @@ public class IndentedJobColumn extends ListViewColumn {
 	public static class DescriptorImpl extends ListViewColumnDescriptor {
 		@Override
 		public String getDisplayName() {
-			return " Categorized - Job";
+			return Messages.IndentedJobColumn_DisplayName();
 		}
 
 		@Override
