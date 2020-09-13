@@ -1,18 +1,5 @@
 package org.jenkinsci.plugins.categorizedview;
 
-import hudson.Extension;
-import hudson.Util;
-import hudson.model.TopLevelItem;
-import hudson.model.ViewGroup;
-import hudson.model.Descriptor;
-import hudson.model.Descriptor.FormException;
-import hudson.model.ListView;
-import hudson.model.ViewDescriptor;
-import hudson.util.CaseInsensitiveComparator;
-import hudson.util.DescribableList;
-import hudson.util.FormValidation;
-import hudson.views.ListViewColumn;
-
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -28,24 +15,36 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
+import hudson.Extension;
+import hudson.Util;
+import hudson.model.Descriptor;
+import hudson.model.ListView;
+import hudson.model.TopLevelItem;
+import hudson.model.ViewDescriptor;
+import hudson.model.ViewGroup;
+import hudson.model.Descriptor.FormException;
+import hudson.util.CaseInsensitiveComparator;
+import hudson.util.DescribableList;
+import hudson.util.FormValidation;
+
 public class CategorizedJobsView extends ListView {
-	private List<GroupingRule> groupingRules = new ArrayList<GroupingRule>();
+	private List<GroupingRule> groupingRules = new ArrayList<>();
 	private String regexToIgnoreOnColorComputing = "";
 
 	private DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>> categorizationCriteria;
-	
+
 	private transient CategorizedItemsBuilder categorizedItemsBuilder;
-	
+
 	@DataBoundConstructor
-	public CategorizedJobsView(String name) {
+	public CategorizedJobsView(final String name) {
 		super(name);
-		if (categorizationCriteria == null)
-			categorizationCriteria = new DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>>(this);
+		if (categorizationCriteria == null) {
+			categorizationCriteria = new DescribableList<>(this);
+		}
 		migrateOldFormat();
 	}
-	
-	
-	public CategorizedJobsView(String name, ViewGroup owner) {
+
+	public CategorizedJobsView(final String name, final ViewGroup owner) {
 		super(name, owner);
 	}
 
@@ -54,89 +53,90 @@ public class CategorizedJobsView extends ListView {
 			Method readResolve = ListView.class.getDeclaredMethod("readResolve");
 			readResolve.setAccessible(true);
 			readResolve.invoke(this);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		try {
 			Field field = ListView.class.getDeclaredField("jobNames");
 			field.setAccessible(true);
 			Object jobNames = field.get(this);
-			if(jobNames==null)
-			{
-				field.set( this,  new TreeSet<String>(CaseInsensitiveComparator.INSTANCE));
+			if (jobNames == null) {
+				field.set(this, new TreeSet<>(CaseInsensitiveComparator.INSTANCE));
 			}
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return this;
 	}
-	
+
 	public List<TopLevelItem> getGroupedItems() {
-		if (categorizationCriteria == null) 
+		if (categorizationCriteria == null) {
 			categorizedItemsBuilder = new CategorizedItemsBuilder(super.getItems(), groupingRules, getRegexToIgnoreOnColorComputing());
-		else
-			categorizedItemsBuilder = new CategorizedItemsBuilder(super.getItems(), categorizationCriteria.toList(), getRegexToIgnoreOnColorComputing());
-		
+		} else {
+			categorizedItemsBuilder = new CategorizedItemsBuilder(super.getItems(), categorizationCriteria.toList(),
+					getRegexToIgnoreOnColorComputing());
+		}
+
 		return categorizedItemsBuilder.getRegroupedItems();
 	}
-	
+
 	public String getRegexToIgnoreOnColorComputing() {
-		if (regexToIgnoreOnColorComputing == null) 
+		if (regexToIgnoreOnColorComputing == null) {
 			return "";
+		}
 		return regexToIgnoreOnColorComputing;
 	}
 
 	public void migrateOldFormat() {
-		if (categorizationCriteria !=null)
+		if (categorizationCriteria != null) {
 			return;
-		
-		if (groupingRules == null || groupingRules.size() == 0)
-			categorizationCriteria = new DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>>(this);
-		else {
-			categorizationCriteria = new DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>>(this, groupingRules);
+		}
+
+		if (groupingRules == null || groupingRules.size() == 0) {
+			categorizationCriteria = new DescribableList<>(this);
+		} else {
+			categorizationCriteria = new DescribableList<>(this, groupingRules);
 			groupingRules.clear();
 		}
 	}
-	
+
 	@Override
-	protected void submit(StaplerRequest req) throws ServletException, FormException, IOException {
+	protected void submit(final StaplerRequest req) throws ServletException, FormException, IOException {
 		forcefullyDisableRecurseBecauseItCausesClassCastExceptionOnJenkins1_532_1(req);
 		super.submit(req);
 		categorizationCriteria.rebuildHetero(req, req.getSubmittedForm(), CategorizationCriteria.all(), "categorizationCriteria");
 		regexToIgnoreOnColorComputing = req.getParameter("regexToIgnoreOnColorComputing");
 	}
 
-	public void forcefullyDisableRecurseBecauseItCausesClassCastExceptionOnJenkins1_532_1( StaplerRequest req) {
+	public void forcefullyDisableRecurseBecauseItCausesClassCastExceptionOnJenkins1_532_1(final StaplerRequest req) {
 		req.setAttribute("recurse", false);
 	}
-    
-    public DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>> getCategorizationCriteria() {
-    	migrateOldFormat();
+
+	public DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>> getCategorizationCriteria() {
+		migrateOldFormat();
 		return categorizationCriteria;
 	}
-    
-    public String getGroupClassFor(TopLevelItem item) {
-    	return categorizedItemsBuilder.getGroupClassFor(item);
-    }
-    
-    public boolean hasLink(TopLevelItem item) {
-    	return item.getUrl() != null;
-    }
-    
-    public boolean isGroupTopLevelItem(TopLevelItem item) {
-    	return item instanceof GroupTopLevelItem;
-    }
-	
+
+	public String getGroupClassFor(final TopLevelItem item) {
+		return categorizedItemsBuilder.getGroupClassFor(item);
+	}
+
+	public boolean hasLink(final TopLevelItem item) {
+		return item.getUrl() != null;
+	}
+
+	public boolean isGroupTopLevelItem(final TopLevelItem item) {
+		return item instanceof GroupTopLevelItem;
+	}
+
 	@Extension
 	public static final class DescriptorImpl extends ViewDescriptor {
+		@Override
 		public String getDisplayName() {
 			return "Categorized Jobs View";
 		}
-		
-		public FormValidation doCheckIncludeRegex(@QueryParameter String value)
-				throws IOException, ServletException, InterruptedException {
+
+		public FormValidation doCheckIncludeRegex(@QueryParameter final String value) {
 			String v = Util.fixEmpty(value);
 			if (v != null) {
 				try {
@@ -148,7 +148,8 @@ public class CategorizedJobsView extends ListView {
 			return FormValidation.ok();
 		}
 	}
-	
+
+	@Override
 	protected void initColumns() {
 		try {
 			Field field = ListView.class.getDeclaredField("columns");
@@ -156,7 +157,7 @@ public class CategorizedJobsView extends ListView {
 			Object columns = field.get(this);
 			if (columns == null) {
 				field.set(this,
-						new DescribableList<ListViewColumn, Descriptor<ListViewColumn>>(
+						new DescribableList<>(
 								this, CategorizedJobsListViewColumn.createDefaultCategorizedInitialColumnList()));
 			}
 		} catch (Exception e) {

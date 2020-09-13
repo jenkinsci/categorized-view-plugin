@@ -1,7 +1,5 @@
 package org.jenkinsci.plugins.categorizedview;
 
-import hudson.model.TopLevelItem;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -10,59 +8,61 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import hudson.model.TopLevelItem;
+
 public class CategorizedItemsBuilder {
 	final Comparator<TopLevelItem> comparator = new TopLevelItemComparator();
 	private List<TopLevelItem> itemsToCategorize;
-	private List<GroupTopLevelItem> groupItems = new ArrayList<GroupTopLevelItem>();
+	private List<GroupTopLevelItem> groupItems = new ArrayList<>();
 	private List<? extends CategorizationCriteria> groupingRules;
 	private Map<String, TopLevelItem> itemsData;
 	private String regexToIgnoreOnColorComputing;
 
-	public CategorizedItemsBuilder(List<TopLevelItem> itemsToCategorize, List<? extends CategorizationCriteria> groupingRules) {
+	public CategorizedItemsBuilder(final List<TopLevelItem> itemsToCategorize, final List<? extends CategorizationCriteria> groupingRules) {
 		this(itemsToCategorize, groupingRules, "");
 	}
-	
-	public CategorizedItemsBuilder(List<TopLevelItem> items, List<? extends CategorizationCriteria> groupingRules, String regexToIgnoreOnColorComputing) {
+
+	public CategorizedItemsBuilder(final List<TopLevelItem> items, final List<? extends CategorizationCriteria> groupingRules,
+			final String regexToIgnoreOnColorComputing) {
 		this.itemsToCategorize = items;
 		this.groupingRules = groupingRules;
 		this.regexToIgnoreOnColorComputing = regexToIgnoreOnColorComputing;
 	}
 
 	public List<TopLevelItem> getRegroupedItems() {
-		return  buildRegroupedItems(itemsToCategorize);
+		return buildRegroupedItems();
 	}
 
-	private List<TopLevelItem> buildRegroupedItems(List<TopLevelItem> items) {
-		return flattenList(buildCategorizedList(items));
+	private List<TopLevelItem> buildRegroupedItems() {
+		return flattenList(buildCategorizedList());
 	}
-	
-	private List<TopLevelItem> buildCategorizedList(List<TopLevelItem> itemsToCategorize) {
-		final List<TopLevelItem> categorizedItems = new ArrayList<TopLevelItem>();
-		if (groupingRules.size()==0) {
+
+	private List<TopLevelItem> buildCategorizedList() {
+		final List<TopLevelItem> categorizedItems = new ArrayList<>();
+		if (groupingRules.size() == 0) {
 			for (TopLevelItem indentedTopLevelItem : itemsToCategorize) {
 				categorizedItems.add(indentedTopLevelItem);
 			}
 			return categorizedItems;
 		}
-		
+
 		for (TopLevelItem item : itemsToCategorize) {
-			boolean categorized = tryToFitItemInCategory(groupingRules, categorizedItems, item);
-			if (!categorized)
+			boolean categorized = tryToFitItemInCategory(categorizedItems, item);
+			if (!categorized) {
 				categorizedItems.add(item);
+			}
 		}
 		return categorizedItems;
 	}
 
 	private boolean tryToFitItemInCategory(
-			List<? extends CategorizationCriteria> groupingRules, 
-			final List<TopLevelItem> categorizedItems, 
-			TopLevelItem item) 
-	{
+			final List<TopLevelItem> categorizedItems,
+			final TopLevelItem item) {
 		boolean grouped = false;
 		for (CategorizationCriteria groupingRule : groupingRules) {
 			String groupNameGivenItem = groupingRule.groupNameGivenItem(item);
-			if (groupNameGivenItem!=null) {
-				addItemToAppropriateGroup(groupNameGivenItem, categorizedItems, item, groupingRule);
+			if (groupNameGivenItem != null) {
+				addItemToAppropriateGroup(groupNameGivenItem, categorizedItems, item);
 				grouped = true;
 			}
 		}
@@ -72,36 +72,32 @@ public class CategorizedItemsBuilder {
 	public void addItemToAppropriateGroup(
 			final String groupName,
 			final List<TopLevelItem> categorizedItems,
-			TopLevelItem item, CategorizationCriteria groupingRule) 
-	{
+			final TopLevelItem item) {
 		GroupTopLevelItem groupTopLevelItem = getGroupForItemOrCreateIfNeeded(categorizedItems, groupName);
 		groupTopLevelItem.add(item);
 	}
 
-	private List<TopLevelItem> flattenList(final List<TopLevelItem> groupedItems) 
-	{
-		final ArrayList<TopLevelItem> res = new ArrayList<TopLevelItem>();
-		itemsData = new LinkedHashMap<String, TopLevelItem>();
+	private List<TopLevelItem> flattenList(final List<TopLevelItem> groupedItems) {
+		final ArrayList<TopLevelItem> res = new ArrayList<>();
+		itemsData = new LinkedHashMap<>();
 		Collections.sort(groupedItems, comparator);
 		for (TopLevelItem item : groupedItems) {
-			final String groupLabel = item.getName();
-			addNestedItemsAsIndentedItemsInTheResult(res, item,	groupLabel);
+			addNestedItemsAsIndentedItemsInTheResult(res, item);
 		}
-		
+
 		return res;
 	}
 
-	private void addNestedItemsAsIndentedItemsInTheResult(final ArrayList<TopLevelItem> res, TopLevelItem item, final String groupLabel) {
+	private void addNestedItemsAsIndentedItemsInTheResult(final ArrayList<TopLevelItem> res, final TopLevelItem item) {
 		res.add(item);
-		
 		itemsData.put(item.getName(), item);
 	}
-	
-	final Map<String, GroupTopLevelItem> groupItemByGroupName = new HashMap<String, GroupTopLevelItem>();
+
+	final Map<String, GroupTopLevelItem> groupItemByGroupName = new HashMap<>();
+
 	private GroupTopLevelItem getGroupForItemOrCreateIfNeeded(
 			final List<TopLevelItem> groupedItems,
-			final String groupName) 
-	{
+			final String groupName) {
 		boolean groupIsMissing = !groupItemByGroupName.containsKey(groupName);
 		if (groupIsMissing) {
 			GroupTopLevelItem value = new GroupTopLevelItem(groupName, regexToIgnoreOnColorComputing);
@@ -112,9 +108,10 @@ public class CategorizedItemsBuilder {
 		return groupItemByGroupName.get(groupName);
 	}
 
-	public String getGroupClassFor(TopLevelItem item) {
-		if (item instanceof GroupTopLevelItem)
-			return ((GroupTopLevelItem)item).getGroupClass();
+	public String getGroupClassFor(final TopLevelItem item) {
+		if (item instanceof GroupTopLevelItem) {
+			return ((GroupTopLevelItem) item).getGroupClass();
+		}
 		return "";
 	}
 
