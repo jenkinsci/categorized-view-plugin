@@ -61,7 +61,7 @@ THE SOFTWARE.
       </td>
     </tr>
     <tr id="jobNestedItems_${job.name}" class="${view.getGroupClassFor(job)} categoryJobs" category="${job.name}" categoryRole="child">
-      <td style="background-color: white;"><st:nbsp/></td>
+      <td><st:nbsp/></td>
       <td colspan="${columnExtensions.size()+1}" class="categoryJobsColumn">
         <c:nestedProjectsView jobs="${job.groupItems}" />
       </td>

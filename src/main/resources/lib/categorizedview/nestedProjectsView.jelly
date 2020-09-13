@@ -38,14 +38,14 @@ THE SOFTWARE.
       <!-- project list -->
       <table id="projectstatus_${job.name}" class="pane bigtable">
         <j:forEach var="job" items="${jobs}">
-		  <tr id="job_${job.name}" class="${job.disabled?'disabledJob':null}">
-		    <j:forEach var="col" items="${columnExtensions}">
-		      <st:include page="column.jelly" it="${col}"/>
-		    </j:forEach>
-		    <td>
-		      <st:nbsp/>
-		    </td>
-		  </tr>
+          <tr id="job_${job.name}" class="${job.disabled?'disabledJob':null}">
+            <j:forEach var="col" items="${columnExtensions}">
+              <st:include page="column.jelly" it="${col}"/>
+            </j:forEach>
+            <td>
+              <st:nbsp/>
+            </td>
+          </tr>
         </j:forEach>
       </table>
     </j:if>
