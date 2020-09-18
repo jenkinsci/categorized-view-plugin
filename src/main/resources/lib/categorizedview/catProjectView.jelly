@@ -72,7 +72,7 @@ THE SOFTWARE.
         <d:invokeBody/>
       </div>
       <!-- project list -->
-      <table id="projectstatus" class="categorizedSortable sortable pane bigtable ${iconSize == '16x16' ? 'bigtable--compact' : ''}">
+      <table id="projectstatus" class="categorizedSortable pane bigtable ${iconSize == '16x16' ? 'bigtable--compact' : ''}">
         <tr class="header">
           <th></th>
           <j:forEach var="col" items="${columnExtensions}">
