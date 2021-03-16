@@ -15,7 +15,7 @@
 	</properties>
 
 	<artifactId>categorized-view</artifactId>
-	<version>y</version>
+	<version>1.1-SNAPSHOT</version>
 	<packaging>hpi</packaging>
 
 	<repositories>
@@ -42,7 +42,7 @@
 		<connection>scm:git:ssh://github.com/jenkinsci/categorized-view-plugin.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/jenkinsci/categorized-view-plugin.git</developerConnection>
 		<url>https://github.com/jenkinsci/categorized-view-plugin</url>
-		<tag>categorized-view-y</tag>
+		<tag>HEAD</tag>
 	</scm>
 	<url>https://wiki.jenkins-ci.org/display/JENKINS/Categorized+Jobs+View</url>
 	<dependencies>
