@@ -30,7 +30,7 @@ THE SOFTWARE.
     </td>
 </j:if>
 <j:if test="${view.isGroupTopLevelItem(job)}">
-	<td style="${indenter.getCss(job)}" data="${job.name}">
+    <td style="${indenter.getCss(job)}" data="${job.name}">
         <l:breakable value="${h.getRelativeDisplayNameFrom(job, itemGroup)}"/>
     </td>
 </j:if>

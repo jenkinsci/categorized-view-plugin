@@ -26,9 +26,9 @@ THE SOFTWARE.
 <j:jelly xmlns:j="jelly:core" xmlns:x="jelly:xml" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:c="/lib/categorizedview">
   <st:once>
-	<script src="${rootURL}/plugin/categorized-view/catSortable.js"/>
-	<script src="${rootURL}/plugin/categorized-view/sectionToggle.js"/>
-	<link rel="stylesheet" type="text/css" href="${rootURL}/plugin/categorized-view/catSortable.css" />
+  <script src="${rootURL}/plugin/categorized-view/catSortable.js"/>
+  <script src="${rootURL}/plugin/categorized-view/sectionToggle.js"/>
+  <link rel="stylesheet" type="text/css" href="${rootURL}/plugin/categorized-view/catSortable.css" />
   </st:once>
   <st:documentation>
     Renders a list of jobs and their key information.
@@ -68,11 +68,12 @@ THE SOFTWARE.
 
     <j:if test="${!empty(jobs) or !empty(attrs.views)}">
       <!-- the caller can inject a tab bar here -->
-      <d:invokeBody/>
+      <div id="projectstatus-tabBar">
+        <d:invokeBody/>
+      </div>
       <!-- project list -->
-      <table id="projectstatus" class="categorizedSortable pane bigtable"
-             style="${showViewTabs?'margin-top:0px; border-top: none;':null}">
-        <tr style="border-top: 0px;">
+      <table id="projectstatus" class="categorizedSortable pane bigtable ${iconSize == '16x16' ? 'bigtable--compact' : ''}">
+        <tr class="header">
           <th></th>
           <j:forEach var="col" items="${columnExtensions}">
              <st:include page="columnHeader.jelly" it="${col}" />
@@ -81,6 +82,7 @@ THE SOFTWARE.
             <st:nbsp/>
           </th>
         </tr>
+
         <j:forEach var="v" items="${attrs.views}">
           <t:projectViewNested />
         </j:forEach>
@@ -88,12 +90,14 @@ THE SOFTWARE.
           <c:catProjectViewRow/>
         </j:forEach>
       </table>
-      <t:iconSize><t:rssBar/></t:iconSize>
+      <div>
+        <t:iconSize><t:rssBar/></t:iconSize>
+      </div>
     </j:if>
   </div>
   <script type="text/javascript">
-  	$$("table.categorizedSortable").each(function(e){
-  		e.sortable = new  CategorizedSortable.CategorizedSortable(e);	
-  	})
+    $$("table.categorizedSortable").each(function(e){
+      e.sortable = new  CategorizedSortable.CategorizedSortable(e);  
+    })
   </script>
 </j:jelly>

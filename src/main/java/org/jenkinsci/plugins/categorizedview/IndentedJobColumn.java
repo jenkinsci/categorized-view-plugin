@@ -1,27 +1,27 @@
 package org.jenkinsci.plugins.categorizedview;
 
-import hudson.Extension;
-import hudson.views.ListViewColumnDescriptor;
-import hudson.views.ListViewColumn;
-
 import org.kohsuke.stapler.DataBoundConstructor;
+
+import hudson.Extension;
+import hudson.views.ListViewColumn;
+import hudson.views.ListViewColumnDescriptor;
 
 public class IndentedJobColumn extends ListViewColumn {
 	@DataBoundConstructor
-    public IndentedJobColumn() {
+	public IndentedJobColumn() {
 		//
-    }
+	}
 
-    @Extension
-    public static class DescriptorImpl extends ListViewColumnDescriptor {
-        @Override
-        public String getDisplayName() {
-        	return " Categorized - Job";
-        }
-        
-        @Override
-        public boolean shownByDefault() {
-        	return false;
-        }
-    }
+	@Extension
+	public static class DescriptorImpl extends ListViewColumnDescriptor {
+		@Override
+		public String getDisplayName() {
+			return Messages.IndentedJobColumn_DisplayName();
+		}
+
+		@Override
+		public boolean shownByDefault() {
+			return false;
+		}
+	}
 }
