@@ -11,7 +11,6 @@
 	<properties>
 		<jenkins.version>2.249.1</jenkins.version>
 		<java.level>8</java.level>
-		<hpi.compatibleSinceVersion>2.249.1</hpi.compatibleSinceVersion>
 	</properties>
 
 	<artifactId>categorized-view</artifactId>
