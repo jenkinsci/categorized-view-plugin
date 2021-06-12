@@ -23,7 +23,6 @@ import hudson.model.TopLevelItem;
 import hudson.model.ViewDescriptor;
 import hudson.model.ViewGroup;
 import hudson.model.Descriptor.FormException;
-import hudson.util.CaseInsensitiveComparator;
 import hudson.util.DescribableList;
 import hudson.util.FormValidation;
 
@@ -61,7 +60,7 @@ public class CategorizedJobsView extends ListView {
 			field.setAccessible(true);
 			Object jobNames = field.get(this);
 			if (jobNames == null) {
-				field.set(this, new TreeSet<>(CaseInsensitiveComparator.INSTANCE));
+				field.set(this, new TreeSet<>(String.CASE_INSENSITIVE_ORDER));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
