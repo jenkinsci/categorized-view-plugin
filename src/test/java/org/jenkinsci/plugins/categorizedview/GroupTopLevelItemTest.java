@@ -4,11 +4,12 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
-import java.util.Locale;
+import java.util.GregorianCalendar;
 
 import org.jenkinsci.plugins.categorizedview.GroupTopLevelItem.GetBuild;
-import org.joda.time.DateTime;
 import org.junit.Test;
 
 import hudson.model.BallColor;
@@ -70,63 +71,63 @@ public class GroupTopLevelItemTest {
 
 	@Test
 	public void getLastBuild_ShouldReturnLastBuildInTheGroup() {
-		subject.add(makeProjectWithLastBuildDate(DateTime.parse("2014-03-28T18:00:00-03:00")));
-		assertEquals("2014-03-28T18:00:00.000-03:00", dateString(subject.getLastBuild().getTimestamp()));
-		subject.add(makeProjectWithLastBuildDate(DateTime.parse("2014-03-21T18:00:00-03:00")));
-		assertEquals("2014-03-28T18:00:00.000-03:00", dateString(subject.getLastBuild().getTimestamp()));
-		subject.add(makeProjectWithLastBuildDate(DateTime.parse("2014-03-30T18:00:00-03:00")));
-		assertEquals("2014-03-30T18:00:00.000-03:00", dateString(subject.getLastBuild().getTimestamp()));
+		subject.add(makeProjectWithLastBuildDate(ZonedDateTime.parse("2014-03-28T18:00:00-03:00")));
+		assertEquals("2014-03-28T18:00:00-03:00", dateString(subject.getLastBuild().getTimestamp()));
+		subject.add(makeProjectWithLastBuildDate(ZonedDateTime.parse("2014-03-21T18:00:00-03:00")));
+		assertEquals("2014-03-28T18:00:00-03:00", dateString(subject.getLastBuild().getTimestamp()));
+		subject.add(makeProjectWithLastBuildDate(ZonedDateTime.parse("2014-03-30T18:00:00-03:00")));
+		assertEquals("2014-03-30T18:00:00-03:00", dateString(subject.getLastBuild().getTimestamp()));
 	}
 
 	@Test
 	public void getLastBuild_WithNullBuild_ShouldNotBreak() {
 		FreeStyleProject freeStyleProject = makeMockProject();
-		subject.add(makeProjectWithLastBuildDate(DateTime.parse("2014-03-28T18:00:00-03:00")));
+		subject.add(makeProjectWithLastBuildDate(ZonedDateTime.parse("2014-03-28T18:00:00-03:00")));
 		subject.add(freeStyleProject);
-		assertEquals("2014-03-28T18:00:00.000-03:00", dateString(subject.getLastBuild().getTimestamp()));
+		assertEquals("2014-03-28T18:00:00-03:00", dateString(subject.getLastBuild().getTimestamp()));
 	}
 
 	@Test
 	public void getLastSuccessfulBuild_ShouldReturnLastBuildInTheGroup() {
-		subject.add(makeProjectWithLastSuccessfulBuildDate(DateTime.parse("2014-03-28T18:00:00-03:00")));
-		assertEquals("2014-03-28T18:00:00.000-03:00", dateString(subject.getLastSuccessfulBuild().getTimestamp()));
-		subject.add(makeProjectWithLastSuccessfulBuildDate(DateTime.parse("2014-03-21T18:00:00-03:00")));
-		assertEquals("2014-03-28T18:00:00.000-03:00", dateString(subject.getLastSuccessfulBuild().getTimestamp()));
-		subject.add(makeProjectWithLastSuccessfulBuildDate(DateTime.parse("2014-03-30T18:00:00-03:00")));
-		assertEquals("2014-03-30T18:00:00.000-03:00", dateString(subject.getLastSuccessfulBuild().getTimestamp()));
+		subject.add(makeProjectWithLastSuccessfulBuildDate(ZonedDateTime.parse("2014-03-28T18:00:00-03:00")));
+		assertEquals("2014-03-28T18:00:00-03:00", dateString(subject.getLastSuccessfulBuild().getTimestamp()));
+		subject.add(makeProjectWithLastSuccessfulBuildDate(ZonedDateTime.parse("2014-03-21T18:00:00-03:00")));
+		assertEquals("2014-03-28T18:00:00-03:00", dateString(subject.getLastSuccessfulBuild().getTimestamp()));
+		subject.add(makeProjectWithLastSuccessfulBuildDate(ZonedDateTime.parse("2014-03-30T18:00:00-03:00")));
+		assertEquals("2014-03-30T18:00:00-03:00", dateString(subject.getLastSuccessfulBuild().getTimestamp()));
 	}
 
 	@Test
 	public void getLastStableBuild_ShouldReturnLastBuildInTheGroup() {
-		subject.add(makeProjectWithLastStableBuildDate(DateTime.parse("2014-03-28T18:00:00-03:00")));
-		assertEquals("2014-03-28T18:00:00.000-03:00", dateString(subject.getLastStableBuild().getTimestamp()));
-		subject.add(makeProjectWithLastStableBuildDate(DateTime.parse("2014-03-21T18:00:00-03:00")));
-		assertEquals("2014-03-28T18:00:00.000-03:00", dateString(subject.getLastStableBuild().getTimestamp()));
-		subject.add(makeProjectWithLastStableBuildDate(DateTime.parse("2014-03-30T18:00:00-03:00")));
-		assertEquals("2014-03-30T18:00:00.000-03:00", dateString(subject.getLastStableBuild().getTimestamp()));
+		subject.add(makeProjectWithLastStableBuildDate(ZonedDateTime.parse("2014-03-28T18:00:00-03:00")));
+		assertEquals("2014-03-28T18:00:00-03:00", dateString(subject.getLastStableBuild().getTimestamp()));
+		subject.add(makeProjectWithLastStableBuildDate(ZonedDateTime.parse("2014-03-21T18:00:00-03:00")));
+		assertEquals("2014-03-28T18:00:00-03:00", dateString(subject.getLastStableBuild().getTimestamp()));
+		subject.add(makeProjectWithLastStableBuildDate(ZonedDateTime.parse("2014-03-30T18:00:00-03:00")));
+		assertEquals("2014-03-30T18:00:00-03:00", dateString(subject.getLastStableBuild().getTimestamp()));
 	}
 
 	@Test
 	public void getLastFailedBuild_ShouldReturnLastBuildInTheGroup() {
-		subject.add(makeProjectWithLastFailedBuildDate(DateTime.parse("2014-03-28T18:00:00-03:00")));
-		assertEquals("2014-03-28T18:00:00.000-03:00", dateString(subject.getLastFailedBuild().getTimestamp()));
-		subject.add(makeProjectWithLastFailedBuildDate(DateTime.parse("2014-03-21T18:00:00-03:00")));
-		assertEquals("2014-03-28T18:00:00.000-03:00", dateString(subject.getLastFailedBuild().getTimestamp()));
-		subject.add(makeProjectWithLastFailedBuildDate(DateTime.parse("2014-03-30T18:00:00-03:00")));
-		assertEquals("2014-03-30T18:00:00.000-03:00", dateString(subject.getLastFailedBuild().getTimestamp()));
+		subject.add(makeProjectWithLastFailedBuildDate(ZonedDateTime.parse("2014-03-28T18:00:00-03:00")));
+		assertEquals("2014-03-28T18:00:00-03:00", dateString(subject.getLastFailedBuild().getTimestamp()));
+		subject.add(makeProjectWithLastFailedBuildDate(ZonedDateTime.parse("2014-03-21T18:00:00-03:00")));
+		assertEquals("2014-03-28T18:00:00-03:00", dateString(subject.getLastFailedBuild().getTimestamp()));
+		subject.add(makeProjectWithLastFailedBuildDate(ZonedDateTime.parse("2014-03-30T18:00:00-03:00")));
+		assertEquals("2014-03-30T18:00:00-03:00", dateString(subject.getLastFailedBuild().getTimestamp()));
 	}
 
 	@Test
 	public void getLastUnsuccessfulBuild_ShouldReturnLastBuildInTheGroup() {
-		subject.add(makeProjectLastUnsuccessfulBuildDate(DateTime.parse("2014-03-28T18:00:00-03:00")));
-		assertEquals("2014-03-28T18:00:00.000-03:00", dateString(subject.getLastUnsuccessfulBuild().getTimestamp()));
-		subject.add(makeProjectLastUnsuccessfulBuildDate(DateTime.parse("2014-03-21T18:00:00-03:00")));
-		assertEquals("2014-03-28T18:00:00.000-03:00", dateString(subject.getLastUnsuccessfulBuild().getTimestamp()));
-		subject.add(makeProjectLastUnsuccessfulBuildDate(DateTime.parse("2014-03-30T18:00:00-03:00")));
-		assertEquals("2014-03-30T18:00:00.000-03:00", dateString(subject.getLastUnsuccessfulBuild().getTimestamp()));
+		subject.add(makeProjectLastUnsuccessfulBuildDate(ZonedDateTime.parse("2014-03-28T18:00:00-03:00")));
+		assertEquals("2014-03-28T18:00:00-03:00", dateString(subject.getLastUnsuccessfulBuild().getTimestamp()));
+		subject.add(makeProjectLastUnsuccessfulBuildDate(ZonedDateTime.parse("2014-03-21T18:00:00-03:00")));
+		assertEquals("2014-03-28T18:00:00-03:00", dateString(subject.getLastUnsuccessfulBuild().getTimestamp()));
+		subject.add(makeProjectLastUnsuccessfulBuildDate(ZonedDateTime.parse("2014-03-30T18:00:00-03:00")));
+		assertEquals("2014-03-30T18:00:00-03:00", dateString(subject.getLastUnsuccessfulBuild().getTimestamp()));
 	}
 
-	private TopLevelItem makeProjectLastUnsuccessfulBuildDate(final DateTime parse) {
+	private TopLevelItem makeProjectLastUnsuccessfulBuildDate(final ZonedDateTime parse) {
 		return makeMockToGetBuild(parse, new GroupTopLevelItem.GetBuild() {
 			@Override
 			public Run getFrom(final Job project) {
@@ -135,7 +136,7 @@ public class GroupTopLevelItemTest {
 		});
 	}
 
-	private TopLevelItem makeProjectWithLastFailedBuildDate(final DateTime parse) {
+	private TopLevelItem makeProjectWithLastFailedBuildDate(final ZonedDateTime parse) {
 		return makeMockToGetBuild(parse, new GroupTopLevelItem.GetBuild() {
 			@Override
 			public Run getFrom(final Job project) {
@@ -144,7 +145,7 @@ public class GroupTopLevelItemTest {
 		});
 	}
 
-	private TopLevelItem makeProjectWithLastBuildDate(final DateTime parse) {
+	private TopLevelItem makeProjectWithLastBuildDate(final ZonedDateTime parse) {
 		return makeMockToGetBuild(parse, new GroupTopLevelItem.GetBuild() {
 			@Override
 			public Run getFrom(final Job project) {
@@ -153,7 +154,7 @@ public class GroupTopLevelItemTest {
 		});
 	}
 
-	private TopLevelItem makeProjectWithLastSuccessfulBuildDate(final DateTime parse) {
+	private TopLevelItem makeProjectWithLastSuccessfulBuildDate(final ZonedDateTime parse) {
 		return makeMockToGetBuild(parse, new GroupTopLevelItem.GetBuild() {
 			@Override
 			public Run getFrom(final Job project) {
@@ -162,7 +163,7 @@ public class GroupTopLevelItemTest {
 		});
 	}
 
-	private TopLevelItem makeProjectWithLastStableBuildDate(final DateTime parse) {
+	private TopLevelItem makeProjectWithLastStableBuildDate(final ZonedDateTime parse) {
 		return makeMockToGetBuild(parse, new GroupTopLevelItem.GetBuild() {
 			@Override
 			public Run getFrom(final Job project) {
@@ -189,13 +190,13 @@ public class GroupTopLevelItemTest {
 		return freeStyleProject;
 	}
 
-	private TopLevelItem makeMockToGetBuild(final DateTime parse, final GetBuild getBuild) {
+	private TopLevelItem makeMockToGetBuild(final ZonedDateTime parse, final GetBuild getBuild) {
 		FreeStyleProject freeStyleProject = makeMockProject();
 		FreeStyleBuild lastBuild = mock(FreeStyleBuild.class);
 		if (parse == null) {
 			when(lastBuild.getTimestamp()).thenReturn(null);
 		} else {
-			when(lastBuild.getTimestamp()).thenReturn(parse.toCalendar(Locale.getDefault()));
+			when(lastBuild.getTimestamp()).thenReturn(GregorianCalendar.from(parse));
 		}
 		when(getBuild.getFrom(freeStyleProject)).thenReturn(lastBuild);
 		return freeStyleProject;
@@ -212,6 +213,6 @@ public class GroupTopLevelItemTest {
 	}
 
 	private String dateString(final Calendar timestamp) {
-		return new DateTime(timestamp).toString();
+		return ((GregorianCalendar) timestamp).toZonedDateTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
 	}
 }
