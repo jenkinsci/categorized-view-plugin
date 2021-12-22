@@ -26,9 +26,9 @@ THE SOFTWARE.
 <j:jelly xmlns:j="jelly:core" xmlns:x="jelly:xml" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:c="/lib/categorizedview">
   <st:once>
-  <script src="${rootURL}/plugin/categorized-view/catSortable.js"/>
-  <script src="${rootURL}/plugin/categorized-view/sectionToggle.js"/>
-  <link rel="stylesheet" type="text/css" href="${rootURL}/plugin/categorized-view/catSortable.css" />
+    <script src="${rootURL}/plugin/categorized-view/catSortable.js"/>
+    <script src="${rootURL}/plugin/categorized-view/sectionToggle.js"/>
+    <link rel="stylesheet" type="text/css" href="${rootURL}/plugin/categorized-view/catSortable.css" />
   </st:once>
   <st:documentation>
     Renders a list of jobs and their key information.
@@ -72,22 +72,25 @@ THE SOFTWARE.
         <d:invokeBody/>
       </div>
       <!-- project list -->
-      <table id="projectstatus" class="categorizedSortable pane bigtable ${iconSize == '16x16' ? 'bigtable--compact' : ''}">
-        <tr class="header">
-          <th></th>
-          <j:forEach var="col" items="${columnExtensions}">
-             <st:include page="columnHeader.jelly" it="${col}" />
-          </j:forEach>
-          <th>
-            <st:nbsp/>
-          </th>
-        </tr>
+      <table id="projectstatus" class="categorizedSortable jenkins-table ${iconSize == '16x16' ? 'jenkins-table--small' : iconSize == '24x24' ? 'jenkins-table--medium' : ''}">
+        <thead>
+          <tr>
+            <th><st:nbsp/></th>
+            <j:forEach var="col" items="${columnExtensions}">
+               <st:include page="columnHeader.jelly" it="${col}" />
+            </j:forEach>
+            <th>
+              <st:nbsp/>
+            </th>
+          </tr>
+        </thead>
 
         <j:forEach var="v" items="${attrs.views}">
           <t:projectViewNested />
         </j:forEach>
         <j:forEach var="job" items="${jobs}">
-          <c:catProjectViewRow/>
+          <j:set var="relativeLinkToJob" value="${h.getRelativeLinkTo(job)}"/>
+          <c:catProjectViewRow jobBaseUrl="${relativeLinkToJob.substring(0, relativeLinkToJob.length() - job.shortUrl.length())}"/>
         </j:forEach>
       </table>
       <div>

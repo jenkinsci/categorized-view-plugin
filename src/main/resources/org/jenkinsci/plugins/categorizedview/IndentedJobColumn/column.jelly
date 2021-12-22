@@ -26,7 +26,7 @@ THE SOFTWARE.
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
 <j:if test="${!view.isGroupTopLevelItem(job)}">
     <td style="${indenter.getCss(job)}">
-        <a href="${rootURL}/${job.url}" class='model-link inside'> <l:breakable value="${h.getRelativeDisplayNameFrom(job, itemGroup)}"/></a>
+        <a href="${rootURL}/${job.url}" class='jenkins-table__link model-link inside'> <l:breakable value="${h.getRelativeDisplayNameFrom(job, itemGroup)}"/></a>
     </td>
 </j:if>
 <j:if test="${view.isGroupTopLevelItem(job)}">

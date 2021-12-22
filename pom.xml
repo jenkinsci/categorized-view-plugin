@@ -4,12 +4,12 @@
 	<parent>
 		<groupId>org.jenkins-ci.plugins</groupId>
 		<artifactId>plugin</artifactId>
-		<version>4.7</version>
+		<version>4.33</version>
 		<relativePath />
 	</parent>
 
 	<properties>
-		<jenkins.version>2.249.1</jenkins.version>
+		<jenkins.version>2.332</jenkins.version>
 		<java.level>8</java.level>
 	</properties>
 
