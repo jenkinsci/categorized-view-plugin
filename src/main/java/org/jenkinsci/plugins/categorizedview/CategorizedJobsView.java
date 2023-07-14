@@ -93,15 +93,10 @@ public class CategorizedJobsView extends ListView {
 
     @Override
     protected void submit(final StaplerRequest req) throws ServletException, FormException, IOException {
-        forcefullyDisableRecurseBecauseItCausesClassCastExceptionOnJenkins1_532_1(req);
         super.submit(req);
         categorizationCriteria.rebuildHetero(
                 req, req.getSubmittedForm(), CategorizationCriteria.all(), "categorizationCriteria");
         regexToIgnoreOnColorComputing = req.getParameter("regexToIgnoreOnColorComputing");
-    }
-
-    public void forcefullyDisableRecurseBecauseItCausesClassCastExceptionOnJenkins1_532_1(final StaplerRequest req) {
-        req.setAttribute("recurse", false);
     }
 
     public DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>> getCategorizationCriteria() {
