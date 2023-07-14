@@ -9,18 +9,18 @@ import jenkins.model.Jenkins;
 
 public abstract class CategorizationCriteria implements Describable<CategorizationCriteria>, ExtensionPoint {
 
-	/**
-	 * @param item This is the item that will be passed to categorization
-	 * @return returns the group name, or null if the item can't be categorized
-	 */
-	public abstract String groupNameGivenItem(TopLevelItem item);
+    /**
+     * @param item This is the item that will be passed to categorization
+     * @return returns the group name, or null if the item can't be categorized
+     */
+    public abstract String groupNameGivenItem(TopLevelItem item);
 
-	public static DescriptorExtensionList<CategorizationCriteria, Descriptor<CategorizationCriteria>> all() {
-		return Jenkins.get().<CategorizationCriteria, Descriptor<CategorizationCriteria>> getDescriptorList(CategorizationCriteria.class);
-	}
+    public static DescriptorExtensionList<CategorizationCriteria, Descriptor<CategorizationCriteria>> all() {
+        return Jenkins.get().getDescriptorList(CategorizationCriteria.class);
+    }
 
-	@Override
-	public Descriptor<CategorizationCriteria> getDescriptor() {
-		return Jenkins.get().getDescriptorOrDie(getClass());
-	}
+    @Override
+    public Descriptor<CategorizationCriteria> getDescriptor() {
+        return Jenkins.get().getDescriptorOrDie(getClass());
+    }
 }
