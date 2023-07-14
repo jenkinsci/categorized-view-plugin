@@ -46,7 +46,6 @@ public class CategorizedJobsView extends ListView {
 		super(name, owner);
 	}
 
-	@Override
 	protected Object readResolve() {
 		super.readResolve();
 		try {

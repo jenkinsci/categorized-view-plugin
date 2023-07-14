@@ -48,7 +48,7 @@ THE SOFTWARE.
          <img class="icon16x16" src="${rootURL}/plugin/categorized-view/images/collapse.png"/> 
       </span>
       <script type="text/javascript">
-        document.observe("dom:loaded", function() {
+        document.addEventListener("DOMContentLoaded", function() {
           restoreJobGroupCollapseState("${view.getViewName()}", "${view.getGroupClassFor(job)}")
         });
       </script>
