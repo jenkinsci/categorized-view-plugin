@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import javax.servlet.ServletException;
@@ -41,22 +40,6 @@ public class CategorizedJobsView extends ListView {
 
     public CategorizedJobsView(final String name, final ViewGroup owner) {
         super(name, owner);
-    }
-
-    @Override
-    protected Object readResolve() {
-        super.readResolve();
-        try {
-            Field field = ListView.class.getDeclaredField("jobNames");
-            field.setAccessible(true);
-            Object jobNames = field.get(this);
-            if (jobNames == null) {
-                field.set(this, new TreeSet<>(String.CASE_INSENSITIVE_ORDER));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return this;
     }
 
     public List<TopLevelItem> getGroupedItems() {
