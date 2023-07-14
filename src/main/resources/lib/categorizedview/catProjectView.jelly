@@ -96,7 +96,7 @@ THE SOFTWARE.
     </j:if>
   </div>
   <script type="text/javascript">
-    $$("table.categorizedSortable").each(function(e){
+    document.querySelectorAll("table.categorizedSortable").forEach(function(e){
       e.sortable = new  CategorizedSortable.CategorizedSortable(e);  
     })
   </script>

@@ -54,7 +54,7 @@ var CategorizedSortable = (function () {
         if (!firstRow) return;
 
         // We have a first row: assume it's the header, and make its contents clickable links
-        firstRow.each(function (cell) {
+        firstRow.forEach(function (cell) {
             cell.innerHTML = '<a href="#" class="sortheader">' + this.getInnerText(cell) + '<span class="sortarrow" /></a>';
             this.arrows.push(cell.firstChild.lastChild);
 
@@ -68,7 +68,7 @@ var CategorizedSortable = (function () {
         // figure out the initial sort preference
         this.pref = this.getStoredPreference();
         if (this.pref == null) {
-            firstRow.each(function (cell, i) {
+            firstRow.forEach(function (cell, i) {
                 var initialSortDir = cell.getAttribute("initialSortDir");
                 if (initialSortDir != null) {
                     this.pref = {
@@ -95,7 +95,7 @@ var CategorizedSortable = (function () {
 
         getFirstRow: function () {
             if (this.table.rows && this.table.rows.length > 0) {
-                return $A(this.table.rows[0].cells);
+                return Array.from(this.table.rows[0].cells);
             }
             return null;
         },
@@ -104,7 +104,7 @@ var CategorizedSortable = (function () {
             var newRows = [];
             var rows = this.table.rows;
             for (var j = 1; j < rows.length; j++) {
-                newRows.push($(rows[j]));
+                newRows.push(rows[j]);
             }
             return newRows;
         },
@@ -194,8 +194,8 @@ var CategorizedSortable = (function () {
             // we allow some rows to stick to the top and bottom, so that is our first sort criteria
             // regardless of the sort function
             function rowPos(r) {
-                if (r.hasClassName("sorttop")) return 0;
-                if (r.hasClassName("sortbottom")) return 2;
+                if (r.classList.contains("sorttop")) return 0;
+                if (r.classList.contains("sortbottom")) return 2;
                 return 1;
             }
 
@@ -220,12 +220,12 @@ var CategorizedSortable = (function () {
                     this.extractData(bCell));
             }.bind(this));
 
-            rows.each(function (e) {
+            rows.forEach(function (e) {
                 this.table.tBodies[0].appendChild(e);
             }.bind(this));
 
             // update arrow rendering
-            this.arrows.each(function (e, i) {
+            this.arrows.forEach(function (e, i) {
                 e.innerHTML = ((i == column) ? dir : arrowTable.none).text;
             });
         },
@@ -241,7 +241,7 @@ var CategorizedSortable = (function () {
         },
 
         getIndexOfSortableTable: function () {
-            return $(document.body).select("TABLE.categorizedSortable").indexOf(this.table);
+            return Array.from(document.querySelectorAll("TABLE.categorizedSortable")).indexOf(this.table);
         },
 
         getInnerText: function (el) {
@@ -358,7 +358,7 @@ var CategorizedSortable = (function () {
             var sortfn = this.caseInsensitive;
             if (itm.match(/^\d\d[\/-]\d\d[\/-]\d\d\d\d$/)) sortfn = this.date;
             if (itm.match(/^\d\d[\/-]\d\d[\/-]\d\d$/)) sortfn = this.date;
-            if (itm.match(/^[�$]/)) sortfn = this.currency;
+            if (itm.match(/^[£$]/)) sortfn = this.currency;
             if (itm.match(/^-?[\d\.]+$/)) sortfn = this.numeric;
             return sortfn;
         },
