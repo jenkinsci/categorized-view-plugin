@@ -2,7 +2,6 @@ package org.jenkinsci.plugins.categorizedview;
 
 import hudson.model.TopLevelItem;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -42,9 +41,7 @@ public class CategorizedItemsBuilder {
     private List<TopLevelItem> buildCategorizedList() {
         final List<TopLevelItem> categorizedItems = new ArrayList<>();
         if (groupingRules.size() == 0) {
-            for (TopLevelItem indentedTopLevelItem : itemsToCategorize) {
-                categorizedItems.add(indentedTopLevelItem);
-            }
+            categorizedItems.addAll(itemsToCategorize);
             return categorizedItems;
         }
 
@@ -78,7 +75,7 @@ public class CategorizedItemsBuilder {
     private List<TopLevelItem> flattenList(final List<TopLevelItem> groupedItems) {
         final ArrayList<TopLevelItem> res = new ArrayList<>();
         itemsData = new LinkedHashMap<>();
-        Collections.sort(groupedItems, comparator);
+        groupedItems.sort(comparator);
         for (TopLevelItem item : groupedItems) {
             addNestedItemsAsIndentedItemsInTheResult(res, item);
         }

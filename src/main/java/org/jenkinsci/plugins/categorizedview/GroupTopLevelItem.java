@@ -20,7 +20,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import jenkins.model.Jenkins;
-import org.acegisecurity.AccessDeniedException;
+import org.springframework.security.access.AccessDeniedException;
 
 @SuppressWarnings("rawtypes")
 public class GroupTopLevelItem implements TopLevelItem {
@@ -312,7 +312,7 @@ public class GroupTopLevelItem implements TopLevelItem {
 
     @Override
     public Collection<? extends Job> getAllJobs() {
-        return Collections.EMPTY_LIST;
+        return Collections.emptyList();
     }
 
     public List<TopLevelItem> getGroupItems() {
@@ -346,7 +346,7 @@ public class GroupTopLevelItem implements TopLevelItem {
 
     public List<TopLevelItem> getNestedItems() {
         final Comparator<TopLevelItem> comparator = new TopLevelItemComparator();
-        Collections.sort(nestedItems, comparator);
+        nestedItems.sort(comparator);
         return nestedItems;
     }
 }
