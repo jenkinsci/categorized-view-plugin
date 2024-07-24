@@ -69,5 +69,5 @@ function getGroupState(viewName, groupName) {
 function setGroupState(viewName, groupName, state) {
     var groupStates = getGroupStates(viewName)
     groupStates[groupName] = state
-    localStorage.setItem("jenkins.categorized-view-collapse-state_" + viewName, Object.toJSON ? Object.toJSON(groupStates) : JSON.stringify(groupStates));
+    localStorage.setItem("jenkins.categorized-view-collapse-state_" + viewName, JSON.stringify(groupStates));
 }
