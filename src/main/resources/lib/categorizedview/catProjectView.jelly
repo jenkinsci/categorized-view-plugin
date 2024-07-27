@@ -29,6 +29,7 @@ THE SOFTWARE.
     <script src="${rootURL}/plugin/categorized-view/catSortable.js"/>
     <script src="${rootURL}/plugin/categorized-view/sectionToggle.js"/>
     <link rel="stylesheet" type="text/css" href="${rootURL}/plugin/categorized-view/catSortable.css" />
+    <link rel="stylesheet" type="text/css" href="${rootURL}/plugin/categorized-view/sectionToggle.css" />
   </st:once>
   <st:documentation>
     Renders a list of jobs and their key information.

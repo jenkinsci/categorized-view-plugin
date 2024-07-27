@@ -114,16 +114,14 @@ var CategorizedSortable = (function () {
          */
         getStoredPreference: function () {
             var key = this.getStorageKey();
-            if (storage.hasKey(key)) {
-                var val = storage.getItem(key);
-                if (val) {
-                    var vals = val.split(":");
-                    if (vals.length == 2) {
-                        return {
-                            column: parseInt(vals[0]),
-                            direction: arrowTable[vals[1]]
-                        };
-                    }
+            var val = sessionStorage.getItem(key);
+            if (val) {
+                var vals = val.split(":");
+                if (vals.length == 2) {
+                    return {
+                        column: parseInt(vals[0]),
+                        direction: arrowTable[vals[1]]
+                    };
                 }
             }
             return null;
@@ -138,7 +136,11 @@ var CategorizedSortable = (function () {
 
         savePreference: function () {
             var key = this.getStorageKey();
-            storage.setItem(key, this.pref.column + ":" + this.pref.direction.id);
+            try {
+              sessionStorage.setItem(key, this.pref.column + ":" + this.pref.direction.id);
+            } catch (e) {
+                console.warn(e);
+            }
         },
 
         /**
@@ -369,29 +371,6 @@ var CategorizedSortable = (function () {
             };
         }
     };
-
-    var storage;
-    try {
-        storage = YAHOO.util.StorageManager.get(
-            YAHOO.util.StorageEngineHTML5.ENGINE_NAME,
-            YAHOO.util.StorageManager.LOCATION_SESSION, {
-                order: [
-                    YAHOO.util.StorageEngineGears
-                ]
-            }
-        );
-    } catch (e) {
-        // no storage available
-        storage = {
-            setItem: function () {},
-            getItem: function () {
-                return null;
-            },
-            hasKey: function () {
-                return false;
-            }
-        };
-    }
 
     return {
         CategorizedSortable: CategorizedSortable,

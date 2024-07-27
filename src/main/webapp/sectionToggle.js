@@ -21,7 +21,7 @@ function hideJobGroup(handle, viewName, group) {
     handle.setAttribute("collapseState", "collapsed");
     document.querySelectorAll('.' + group).forEach(
         function (e) {
-            e.style.display = "none"
+            e.style.display = "none";
         }
     )
     setGroupState(viewName, group, "none");
@@ -35,12 +35,7 @@ function showJobGroup(handle, viewName, group) {
     document.querySelectorAll('.' + group).forEach(
         function (e) {
             e.style.display = "";
-            e.style.opacity = 0;
-            new YAHOO.util.Anim(e, {
-                opacity: {
-                    to: 1
-                }
-            }, 0.2, YAHOO.util.Easing.easeIn).animate();
+            e.style.animation = "cat-view-animate-in 0.5s";
         }
     )
     setGroupState(viewName, group, "");
