@@ -18,6 +18,11 @@
       <id>taksan</id>
       <name>Gabriel Takeuchi</name>
     </developer>
+    <developer>
+      <id>mPokornyETM</id>
+      <name>Martin Pokorny</name>
+      <email>martin.pokorny@etm.at</email>
+    </developer>
   </developers>
 
   <scm>
@@ -32,6 +37,8 @@
     <changelist>-SNAPSHOT</changelist>
     <jenkins.version>2.440.3</jenkins.version>
     <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
+    <spotbugs.effort>Max</spotbugs.effort>
+    <spotbugs.threshold>Low</spotbugs.threshold>
     <spotless.check.skip>false</spotless.check.skip>
   </properties>
 
