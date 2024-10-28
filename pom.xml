@@ -18,6 +18,11 @@
       <id>taksan</id>
       <name>Gabriel Takeuchi</name>
     </developer>
+    <developer>
+      <id>mPokornyETM</id>
+      <name>Martin Pokorny</name>
+      <email>martin.pokorny@etm.at</email>
+    </developer>
   </developers>
 
   <scm>
