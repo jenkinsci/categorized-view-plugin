@@ -1,4 +1,8 @@
-# Changelog
+# Old Changelog
+
+This is the old changelog, see
+[GitHub Releases](https://github.com/jenkinsci/categorized-view-plugin/releases)
+for recent versions.
 
 ## Version 1.10
 
