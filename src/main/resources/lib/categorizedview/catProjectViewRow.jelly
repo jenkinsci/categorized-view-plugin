@@ -40,15 +40,14 @@ THE SOFTWARE.
     </tr>
   </j:if>  
   <j:if test="${view.isGroupTopLevelItem(job)}">
+    <st:adjunct includes="lib.categorizedview.categorized-view-row"/>
     <tr id="category_${job.name}" class="${job.disabled?'disabledJob':null} job-status-${job.iconColor.iconName} categoryJobRow" category="${job.name}"
-      categoryRole="category"
-      onClick="toggleJobGroupVisibility('${view.getViewName()}','${view.getGroupClassFor(job)}')">
+      categoryRole="category">
       <td>
+        <span class="view-group-data-holder" data-view="${view.getViewName()}" data-jobgroup="${view.getGroupClassFor(job)}"/>
         <span id="handle_${view.getGroupClassFor(job)}">
          <img class="icon16x16" src="${rootURL}/plugin/categorized-view/images/collapse.png"/> 
       </span>
-        <span class="restoreJobGroupCollapseStateParams" data-view="${view.getViewName()}" data-jobgroup="${view.getGroupClassFor(job)}"  style="display: none;"/>
-        <st:adjunct includes="lib.categorizedview.categorized-view-row"/>
       </td>
       <j:forEach var="col" items="${columnExtensions}">
         <st:include page="column.jelly" it="${col}"/>
