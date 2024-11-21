@@ -41,8 +41,7 @@ THE SOFTWARE.
   </j:if>  
   <j:if test="${view.isGroupTopLevelItem(job)}">
     <st:adjunct includes="lib.categorizedview.categorized-view-row"/>
-    <tr id="category_${job.name}" class="${job.disabled?'disabledJob':null} job-status-${job.iconColor.iconName} categoryJobRow" category="${job.name}"
-      categoryRole="category">
+    <tr id="category_${job.name}" class="${job.disabled?'disabledJob':null} job-status-${job.iconColor.iconName} categoryJobRow" category="${job.name}" categoryRole="category">
       <td>
         <span class="view-group-data-holder" data-view="${view.getViewName()}" data-jobgroup="${view.getGroupClassFor(job)}"/>
         <span id="handle_${view.getGroupClassFor(job)}">
