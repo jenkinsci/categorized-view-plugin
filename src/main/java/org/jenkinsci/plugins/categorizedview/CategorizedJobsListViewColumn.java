@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.sf.json.JSONObject;
+import org.kohsuke.stapler.StaplerRequest2;
 
 public abstract class CategorizedJobsListViewColumn extends ListViewColumn {
     public static List<ListViewColumn> createDefaultCategorizedInitialColumnList() {
@@ -27,7 +28,7 @@ public abstract class CategorizedJobsListViewColumn extends ListViewColumn {
             final JSONObject emptyJSON = new JSONObject();
             if (des != null) {
                 try {
-                    r.add(des.newInstance(null, emptyJSON));
+                    r.add(des.newInstance((StaplerRequest2) null, emptyJSON));
                 } catch (FormException e) {
                     LOGGER.log(Level.WARNING, "Failed to instantiate " + des.clazz, e);
                 }
