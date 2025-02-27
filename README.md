@@ -1,5 +1,12 @@
 # Categorized View
 
+[![Jenkins Plugin](https://img.shields.io/jenkins/plugin/v/categorized-view.svg)](https://plugins.jenkins.io/categorized-view)
+[![GitHub release](https://img.shields.io/github/release/jenkinsci/categorized-view-plugin.svg?label=release)](https://github.com/jenkinsci/categorized-view-plugin/releases/latest)
+[![Jenkins Plugin Installs](https://img.shields.io/jenkins/plugin/i/categorized-view.svg?color=blue)](https://plugins.jenkins.io/categorized-view)
+[![Build Status](https://ci.jenkins.io/buildStatus/icon?job=Plugins%2Fcategorized-view-plugin%2Fmaster)](https://ci.jenkins.io/job/Plugins/job/categorized-view-plugin/job/master/)
+[![GitHub license](https://img.shields.io/github/license/jenkinsci/categorized-view-plugin.svg)](https://github.com/jenkinsci/categorized-view-plugin/blob/master/LICENSE.txt)
+[![Maintenance](https://img.shields.io/maintenance/yes/2024.svg)](https://github.com/jenkinsci/categorized-view-plugin)
+
 Introduce a new kind of view where you can categorize groups of jobs under a single label
 created by regular expressions or other criterias that can be implemented as extension points.
 
