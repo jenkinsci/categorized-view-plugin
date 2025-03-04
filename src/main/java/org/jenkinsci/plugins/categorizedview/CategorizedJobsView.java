@@ -11,16 +11,16 @@ import hudson.model.ViewDescriptor;
 import hudson.model.ViewGroup;
 import hudson.util.DescribableList;
 import hudson.util.FormValidation;
+import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import javax.servlet.ServletException;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 
 public class CategorizedJobsView extends ListView {
     private List<GroupingRule> groupingRules = new ArrayList<>();
@@ -79,7 +79,7 @@ public class CategorizedJobsView extends ListView {
     }
 
     @Override
-    protected void submit(final StaplerRequest req) throws ServletException, FormException, IOException {
+    protected void submit(final StaplerRequest2 req) throws ServletException, FormException, IOException {
         super.submit(req);
         categorizationCriteria.rebuildHetero(
                 req, req.getSubmittedForm(), CategorizationCriteria.all(), "categorizationCriteria");

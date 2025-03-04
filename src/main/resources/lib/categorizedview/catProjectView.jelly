@@ -99,9 +99,5 @@ THE SOFTWARE.
       </div>
     </j:if>
   </div>
-  <script type="text/javascript">
-    document.querySelectorAll("table.categorizedSortable").forEach(function(e){
-      e.sortable = new  CategorizedSortable.CategorizedSortable(e);  
-    })
-  </script>
+  <st:adjunct includes="lib.categorizedview.categorized-view"/>
 </j:jelly>
