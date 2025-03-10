@@ -135,7 +135,7 @@ public class CategorizedJobsView extends ListView {
                         new DescribableList<>(
                                 this, CategorizedJobsListViewColumn.createDefaultCategorizedInitialColumnList()));
             }
-        } catch (Exception e) {
+        } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }
     }
