@@ -1,18 +1,19 @@
 package org.jenkinsci.plugins.categorizedview;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class GroupingRuleTest {
+class GroupingRuleTest {
+
     @Test
-    public void regexShouldNotBeNormalizedIfNotNeeded() {
+    void regexShouldNotBeNormalizedIfNotNeeded() {
         GroupingRule subject = new GroupingRule(".*(s).*", "");
         assertEquals(".*(s).*", subject.getNormalizedGroupRegex());
     }
 
     @Test
-    public void regexWithoutLeadingAndEndingAsterisk_ShoulAddThem() {
+    void regexWithoutLeadingAndEndingAsterisk_ShoulAddThem() {
         GroupingRule subject = new GroupingRule("(.*s)", "");
         assertEquals(".*(.*s).*", subject.getNormalizedGroupRegex());
     }

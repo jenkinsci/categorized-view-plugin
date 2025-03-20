@@ -1,55 +1,58 @@
 package org.jenkinsci.plugins.categorizedview;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import hudson.model.TopLevelItem;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class CategorizedItemsBuilderTest {
+class CategorizedItemsBuilderTest {
 
-    private List<TopLevelItem> itemsToCategorize;
-
-    public CategorizedItemsBuilderTest() {
-        itemsToCategorize = new ArrayList<>();
-        itemsToCategorize.add(makeMockedItem("xa"));
-        itemsToCategorize.add(makeMockedItem("ba"));
-        itemsToCategorize.add(makeMockedItem("me"));
-        itemsToCategorize.add(makeMockedItem("ma"));
-    }
+    private final List<TopLevelItem> itemsToCategorize = new ArrayList<>(
+            Arrays.asList(makeMockedItem("xa"), makeMockedItem("ba"), makeMockedItem("me"), makeMockedItem("ma")));
 
     @Test
-    public void getItems_withNullRegex_ShouldReturnSortedList() {
+    void getItems_withNullRegex_ShouldReturnSortedList() {
         String groupRegex = null;
         final CategorizedItemsBuilder subject =
-                new CategorizedItemsBuilder(itemsToCategorize, Arrays.asList(new GroupingRule(groupRegex, "")));
+                new CategorizedItemsBuilder(itemsToCategorize, List.of(new GroupingRule(groupRegex, "")));
 
-        String expected = "ba\n" + "ma\n" + "me\n" + "xa\n";
+        String expected =
+                """
+                ba
+                ma
+                me
+                xa
+                """;
 
         String actual = buildResultToCompare(subject);
         assertEquals(expected, actual);
     }
 
     @Test
-    public void getItems_withEmptyRegex_ShouldReturnSortedList() {
+    void getItems_withEmptyRegex_ShouldReturnSortedList() {
         String groupRegex = "";
         final CategorizedItemsBuilder subject =
-                new CategorizedItemsBuilder(itemsToCategorize, Arrays.asList(new GroupingRule(groupRegex, "")));
+                new CategorizedItemsBuilder(itemsToCategorize, List.of(new GroupingRule(groupRegex, "")));
         String actual = buildResultToCompare(subject);
 
-        String expected = "ba\n" + "ma\n" + "me\n" + "xa\n";
+        String expected =
+                """
+                ba
+                ma
+                me
+                xa
+                """;
 
         assertEquals(expected, actual);
     }
 
     @Test
-    public void getItems_withRegex_ShouldGroupByRegex() {
+    void getItems_withRegex_ShouldGroupByRegex() {
         itemsToCategorize.add(makeMockedItem("8.03-bar"));
         itemsToCategorize.add(makeMockedItem("8.02-foo"));
         itemsToCategorize.add(makeMockedItem("8.02-baz"));
@@ -58,25 +61,29 @@ public class CategorizedItemsBuilderTest {
 
         String groupRegex = "(8...)";
         final CategorizedItemsBuilder subject =
-                new CategorizedItemsBuilder(itemsToCategorize, Arrays.asList(new GroupingRule(groupRegex, "")));
+                new CategorizedItemsBuilder(itemsToCategorize, List.of(new GroupingRule(groupRegex, "")));
 
-        String expected = "8.02\n" + "  8.02-baz\n"
-                + "  8.02-foo\n"
-                + "8.03\n"
-                + "  8.03-bar\n"
-                + "  8.03-foo\n"
-                + "  a8.03-foo\n"
-                + "ba\n"
-                + "ma\n"
-                + "me\n"
-                + "xa\n";
+        String expected =
+                """
+                8.02
+                  8.02-baz
+                  8.02-foo
+                8.03
+                  8.03-bar
+                  8.03-foo
+                  a8.03-foo
+                ba
+                ma
+                me
+                xa
+                """;
 
         String actual = buildResultToCompare(subject);
         assertEquals(expected, actual);
     }
 
     @Test
-    public void getItems_withRegex_andNaming_ShouldGroupByRegexAndNameWithNamingRule() {
+    void getItems_withRegex_andNaming_ShouldGroupByRegexAndNameWithNamingRule() {
         itemsToCategorize.add(makeMockedItem("8.03-bar"));
         itemsToCategorize.add(makeMockedItem("8.02-foo"));
         itemsToCategorize.add(makeMockedItem("8.02-baz"));
@@ -85,24 +92,28 @@ public class CategorizedItemsBuilderTest {
 
         String groupRegex = "(8...)";
         final CategorizedItemsBuilder subject =
-                new CategorizedItemsBuilder(itemsToCategorize, Arrays.asList(new GroupingRule(groupRegex, "foo $1")));
-        String expected = "ba\n" + "foo 8.02\n"
-                + "  8.02-baz\n"
-                + "  8.02-foo\n"
-                + "foo 8.03\n"
-                + "  8.03-bar\n"
-                + "  8.03-foo\n"
-                + "  a8.03-foo\n"
-                + "ma\n"
-                + "me\n"
-                + "xa\n";
+                new CategorizedItemsBuilder(itemsToCategorize, List.of(new GroupingRule(groupRegex, "foo $1")));
+        String expected =
+                """
+                ba
+                foo 8.02
+                  8.02-baz
+                  8.02-foo
+                foo 8.03
+                  8.03-bar
+                  8.03-foo
+                  a8.03-foo
+                ma
+                me
+                xa
+                """;
 
         String actual = buildResultToCompare(subject);
         assertEquals(expected, actual);
     }
 
     @Test
-    public void buildRegroupedItems_withListOfRegexAndNamingRules_ShouldUseAllRulesToCategorize() {
+    void buildRegroupedItems_withListOfRegexAndNamingRules_ShouldUseAllRulesToCategorize() {
         itemsToCategorize.add(makeMockedItem("8.03-bar"));
         itemsToCategorize.add(makeMockedItem("8.02-foo"));
         itemsToCategorize.add(makeMockedItem("8.02-baz"));
@@ -110,22 +121,25 @@ public class CategorizedItemsBuilderTest {
         itemsToCategorize.add(makeMockedItem("a8.03-foo"));
         itemsToCategorize.add(makeMockedItem("m8.03-foo"));
 
-        List<GroupingRule> rules =
-                Arrays.asList(new GroupingRule("(8...)", "Foo $1"), new GroupingRule("(m)", "baz $1"));
+        List<GroupingRule> rules = List.of(new GroupingRule("(8...)", "Foo $1"), new GroupingRule("(m)", "baz $1"));
         final CategorizedItemsBuilder subject = new CategorizedItemsBuilder(itemsToCategorize, rules);
-        String expected = "ba\n" + "baz m\n"
-                + "  m8.03-foo\n"
-                + "  ma\n"
-                + "  me\n"
-                + "Foo 8.02\n"
-                + "  8.02-baz\n"
-                + "  8.02-foo\n"
-                + "Foo 8.03\n"
-                + "  8.03-bar\n"
-                + "  8.03-foo\n"
-                + "  a8.03-foo\n"
-                + "  m8.03-foo\n"
-                + "xa\n";
+        String expected =
+                """
+                ba
+                baz m
+                  m8.03-foo
+                  ma
+                  me
+                Foo 8.02
+                  8.02-baz
+                  8.02-foo
+                Foo 8.03
+                  8.03-bar
+                  8.03-foo
+                  a8.03-foo
+                  m8.03-foo
+                xa
+                """;
 
         String actual = buildResultToCompare(subject);
         assertEquals(expected, actual);
@@ -133,27 +147,22 @@ public class CategorizedItemsBuilderTest {
         List<GroupTopLevelItem> groupItems = subject.getGroupItems();
         assertEquals(3, groupItems.size());
 
-        Collections.sort(groupItems, new Comparator<GroupTopLevelItem>() {
-            @Override
-            public int compare(final GroupTopLevelItem o1, final GroupTopLevelItem o2) {
-                return o1.getName().compareToIgnoreCase(o2.getName());
-            }
-        });
+        groupItems.sort((o1, o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
         assertEquals("baz m", groupItems.get(0).getName());
         assertEquals(3, groupItems.get(0).getNestedItems().size());
         assertEquals("Foo 8.02", groupItems.get(1).getName());
         assertEquals("Foo 8.03", groupItems.get(2).getName());
     }
 
-    private String buildResultToCompare(final CategorizedItemsBuilder subject) {
+    private static String buildResultToCompare(final CategorizedItemsBuilder subject) {
         List<TopLevelItem> items = subject.getRegroupedItems();
-        StringBuffer sb = new StringBuffer();
-        for (TopLevelItem identedItem : items) {
-            sb.append(identedItem.getName());
+        StringBuilder sb = new StringBuilder();
+        for (TopLevelItem indentedItem : items) {
+            sb.append(indentedItem.getName());
             sb.append("\n");
 
-            if (identedItem instanceof GroupTopLevelItem) {
-                List<TopLevelItem> nestedItems = ((GroupTopLevelItem) identedItem).getNestedItems();
+            if (indentedItem instanceof GroupTopLevelItem) {
+                List<TopLevelItem> nestedItems = ((GroupTopLevelItem) indentedItem).getNestedItems();
                 for (TopLevelItem item : nestedItems) {
                     sb.append("  ");
                     sb.append(item.getName());
@@ -164,7 +173,7 @@ public class CategorizedItemsBuilderTest {
         return sb.toString();
     }
 
-    private TopLevelItem makeMockedItem(final String value) {
+    private static TopLevelItem makeMockedItem(final String value) {
         TopLevelItem mockedItem = mock(TopLevelItem.class);
         when(mockedItem.getName()).thenReturn(value);
         return mockedItem;
