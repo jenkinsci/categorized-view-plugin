@@ -25,9 +25,6 @@ function hideJobGroup(handle, viewName, group) {
         }
     )
     setGroupState(viewName, group, "none");
-    var src = document.querySelector("#handle_" + group + " img").src;
-    src = src.replace(/collapse.png/, "expand.png")
-    document.querySelector("#handle_" + group + " img").src = src;
 }
 
 function showJobGroup(handle, viewName, group) {
@@ -39,9 +36,6 @@ function showJobGroup(handle, viewName, group) {
         }
     )
     setGroupState(viewName, group, "");
-    var src = document.querySelector("#handle_" + group + " img").src;
-    src = src.replace(/expand.png/, "collapse.png")
-    document.querySelector("#handle_" + group + " img").src = src;
 }
 
 function getGroupStates(viewName) {

@@ -3,3 +3,25 @@
     opacity: 0;
   }
 }
+
+.section-toggle-icon {
+  svg {
+    width: 0.875rem;
+    height: 0.875rem;
+    transition: var(--standard-transition);
+  }
+
+  &[collapseState="collapsed"] {
+    &:active {
+      svg {
+        translate: 0 0.125rem;
+      }
+    }
+  }
+
+  &[collapseState="expanded"] {
+    svg {
+      rotate: -180deg;
+    }
+  }
+}

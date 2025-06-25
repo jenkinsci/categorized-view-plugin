@@ -43,9 +43,9 @@ THE SOFTWARE.
     <st:adjunct includes="lib.categorizedview.categorized-view-row"/>
     <tr id="category_${job.name}" class="${job.disabled?'disabledJob':null} job-status-${job.iconColor.iconName} categoryJobRow" category="${job.name}" categoryRole="category" data-view="${view.getViewName()}" data-jobgroup="${view.getGroupClassFor(job)}">
       <td>
-        <span id="handle_${view.getGroupClassFor(job)}">
-         <img class="icon16x16" src="${rootURL}/plugin/categorized-view/images/collapse.png"/> 
-      </span>
+        <span id="handle_${view.getGroupClassFor(job)}" class="section-toggle-icon">
+          <l:icon class="icon16x16" src="symbol-chevron-down" />
+        </span>
       </td>
       <j:forEach var="col" items="${columnExtensions}">
         <st:include page="column.jelly" it="${col}"/>
