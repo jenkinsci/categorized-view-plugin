@@ -1,6 +1,6 @@
 package org.jenkinsci.plugins.categorizedview;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -9,20 +9,20 @@ import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.HealthReport;
 import hudson.model.Job;
-import hudson.model.Run;
 import hudson.model.TopLevelItem;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import org.jenkinsci.plugins.categorizedview.GroupTopLevelItem.GetBuild;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class GroupTopLevelItemTest {
-    GroupTopLevelItem subject = new GroupTopLevelItem("", ".*ignore-me.*");
+class GroupTopLevelItemTest {
+
+    private final GroupTopLevelItem subject = new GroupTopLevelItem("", ".*ignore-me.*");
 
     @Test
-    public void getBuildHealth_returnsWorstHealthValue() {
+    void getBuildHealth_returnsWorstHealthValue() {
         subject.add(makeProjectWithHealth(80));
         subject.add(makeProjectWithHealth(30));
 
@@ -30,7 +30,7 @@ public class GroupTopLevelItemTest {
     }
 
     @Test
-    public void getIconColor_ShouldReturnWorstBallColor() {
+    void getIconColor_ShouldReturnWorstBallColor() {
         assertEquals(BallColor.NOTBUILT, subject.getIconColor());
 
         subject.add(makeProjectWithColor(BallColor.NOTBUILT));
@@ -68,7 +68,7 @@ public class GroupTopLevelItemTest {
     }
 
     @Test
-    public void getLastBuild_ShouldReturnLastBuildInTheGroup() {
+    void getLastBuild_ShouldReturnLastBuildInTheGroup() {
         subject.add(makeProjectWithLastBuildDate(ZonedDateTime.parse("2014-03-28T18:00:00-03:00")));
         assertEquals(
                 "2014-03-28T18:00:00-03:00", dateString(subject.getLastBuild().getTimestamp()));
@@ -81,7 +81,7 @@ public class GroupTopLevelItemTest {
     }
 
     @Test
-    public void getLastBuild_WithNullBuild_ShouldNotBreak() {
+    void getLastBuild_WithNullBuild_ShouldNotBreak() {
         FreeStyleProject freeStyleProject = makeMockProject();
         subject.add(makeProjectWithLastBuildDate(ZonedDateTime.parse("2014-03-28T18:00:00-03:00")));
         subject.add(freeStyleProject);
@@ -90,7 +90,7 @@ public class GroupTopLevelItemTest {
     }
 
     @Test
-    public void getLastSuccessfulBuild_ShouldReturnLastBuildInTheGroup() {
+    void getLastSuccessfulBuild_ShouldReturnLastBuildInTheGroup() {
         subject.add(makeProjectWithLastSuccessfulBuildDate(ZonedDateTime.parse("2014-03-28T18:00:00-03:00")));
         assertEquals(
                 "2014-03-28T18:00:00-03:00",
@@ -106,7 +106,7 @@ public class GroupTopLevelItemTest {
     }
 
     @Test
-    public void getLastStableBuild_ShouldReturnLastBuildInTheGroup() {
+    void getLastStableBuild_ShouldReturnLastBuildInTheGroup() {
         subject.add(makeProjectWithLastStableBuildDate(ZonedDateTime.parse("2014-03-28T18:00:00-03:00")));
         assertEquals(
                 "2014-03-28T18:00:00-03:00",
@@ -122,7 +122,7 @@ public class GroupTopLevelItemTest {
     }
 
     @Test
-    public void getLastFailedBuild_ShouldReturnLastBuildInTheGroup() {
+    void getLastFailedBuild_ShouldReturnLastBuildInTheGroup() {
         subject.add(makeProjectWithLastFailedBuildDate(ZonedDateTime.parse("2014-03-28T18:00:00-03:00")));
         assertEquals(
                 "2014-03-28T18:00:00-03:00",
@@ -138,7 +138,7 @@ public class GroupTopLevelItemTest {
     }
 
     @Test
-    public void getLastUnsuccessfulBuild_ShouldReturnLastBuildInTheGroup() {
+    void getLastUnsuccessfulBuild_ShouldReturnLastBuildInTheGroup() {
         subject.add(makeProjectLastUnsuccessfulBuildDate(ZonedDateTime.parse("2014-03-28T18:00:00-03:00")));
         assertEquals(
                 "2014-03-28T18:00:00-03:00",
@@ -153,62 +153,37 @@ public class GroupTopLevelItemTest {
                 dateString(subject.getLastUnsuccessfulBuild().getTimestamp()));
     }
 
-    private TopLevelItem makeProjectLastUnsuccessfulBuildDate(final ZonedDateTime parse) {
-        return makeMockToGetBuild(parse, new GroupTopLevelItem.GetBuild() {
-            @Override
-            public Run getFrom(final Job project) {
-                return project.getLastUnsuccessfulBuild();
-            }
-        });
+    private static TopLevelItem makeProjectLastUnsuccessfulBuildDate(final ZonedDateTime parse) {
+        return makeMockToGetBuild(parse, Job::getLastUnsuccessfulBuild);
     }
 
-    private TopLevelItem makeProjectWithLastFailedBuildDate(final ZonedDateTime parse) {
-        return makeMockToGetBuild(parse, new GroupTopLevelItem.GetBuild() {
-            @Override
-            public Run getFrom(final Job project) {
-                return project.getLastFailedBuild();
-            }
-        });
+    private static TopLevelItem makeProjectWithLastFailedBuildDate(final ZonedDateTime parse) {
+        return makeMockToGetBuild(parse, Job::getLastFailedBuild);
     }
 
-    private TopLevelItem makeProjectWithLastBuildDate(final ZonedDateTime parse) {
-        return makeMockToGetBuild(parse, new GroupTopLevelItem.GetBuild() {
-            @Override
-            public Run getFrom(final Job project) {
-                return project.getLastBuild();
-            }
-        });
+    private static TopLevelItem makeProjectWithLastBuildDate(final ZonedDateTime parse) {
+        return makeMockToGetBuild(parse, Job::getLastBuild);
     }
 
-    private TopLevelItem makeProjectWithLastSuccessfulBuildDate(final ZonedDateTime parse) {
-        return makeMockToGetBuild(parse, new GroupTopLevelItem.GetBuild() {
-            @Override
-            public Run getFrom(final Job project) {
-                return project.getLastSuccessfulBuild();
-            }
-        });
+    private static TopLevelItem makeProjectWithLastSuccessfulBuildDate(final ZonedDateTime parse) {
+        return makeMockToGetBuild(parse, Job::getLastSuccessfulBuild);
     }
 
-    private TopLevelItem makeProjectWithLastStableBuildDate(final ZonedDateTime parse) {
-        return makeMockToGetBuild(parse, new GroupTopLevelItem.GetBuild() {
-            @Override
-            public Run getFrom(final Job project) {
-                return project.getLastStableBuild();
-            }
-        });
+    private static TopLevelItem makeProjectWithLastStableBuildDate(final ZonedDateTime parse) {
+        return makeMockToGetBuild(parse, Job::getLastStableBuild);
     }
 
-    private TopLevelItem makeProjectWithColor(final BallColor color) {
+    private static TopLevelItem makeProjectWithColor(final BallColor color) {
         return makeProjectWithColor(color, "");
     }
 
-    private TopLevelItem makeProjectWithColor(final BallColor color, final String projName) {
+    private static TopLevelItem makeProjectWithColor(final BallColor color, final String projName) {
         FreeStyleProject freeStyleProject = makeMockProject(projName);
         when(freeStyleProject.getIconColor()).thenReturn(color);
         return freeStyleProject;
     }
 
-    private FreeStyleProject makeProjectWithHealth(final int score) {
+    private static FreeStyleProject makeProjectWithHealth(final int score) {
         FreeStyleProject freeStyleProject = makeMockProject();
         HealthReport healthReport = new HealthReport();
         healthReport.setScore(score);
@@ -216,7 +191,7 @@ public class GroupTopLevelItemTest {
         return freeStyleProject;
     }
 
-    private TopLevelItem makeMockToGetBuild(final ZonedDateTime parse, final GetBuild getBuild) {
+    private static TopLevelItem makeMockToGetBuild(final ZonedDateTime parse, final GetBuild getBuild) {
         FreeStyleProject freeStyleProject = makeMockProject();
         FreeStyleBuild lastBuild = mock(FreeStyleBuild.class);
         if (parse == null) {
@@ -228,17 +203,17 @@ public class GroupTopLevelItemTest {
         return freeStyleProject;
     }
 
-    private FreeStyleProject makeMockProject() {
+    private static FreeStyleProject makeMockProject() {
         return makeMockProject("");
     }
 
-    public FreeStyleProject makeMockProject(final String projName) {
+    public static FreeStyleProject makeMockProject(final String projName) {
         FreeStyleProject freeStyleProject = mock(FreeStyleProject.class);
         when(freeStyleProject.getName()).thenReturn(projName);
         return freeStyleProject;
     }
 
-    private String dateString(final Calendar timestamp) {
+    private static String dateString(final Calendar timestamp) {
         return ((GregorianCalendar) timestamp).toZonedDateTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     }
 }

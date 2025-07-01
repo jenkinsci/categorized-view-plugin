@@ -38,6 +38,8 @@ THE SOFTWARE.
       <!-- project list -->
       <table id="projectstatus_${job.name}" class="pane bigtable">
         <j:forEach var="job" items="${jobs}">
+          <j:set var="relativeLinkToJob" value="${h.getRelativeLinkTo(job)}"/>
+          <j:set var="jobBaseUrl" value="${relativeLinkToJob.substring(0, relativeLinkToJob.length() - job.shortUrl.length())}"/>
           <tr id="job_${job.name}" class="${job.disabled?'disabledJob':null}">
             <j:forEach var="col" items="${columnExtensions}">
               <st:include page="column.jelly" it="${col}"/>

@@ -124,9 +124,6 @@ public class CategorizedJobsView extends ListView {
     }
 
     @Override
-    @SuppressFBWarnings(
-            value = {"DP_DO_INSIDE_DO_PRIVILEGED", "REC_CATCH_EXCEPTION"},
-            justification = "let me just make the 'init' build pass")
     protected void initColumns() {
         try {
             Field field = ListView.class.getDeclaredField("columns");
@@ -138,7 +135,7 @@ public class CategorizedJobsView extends ListView {
                         new DescribableList<>(
                                 this, CategorizedJobsListViewColumn.createDefaultCategorizedInitialColumnList()));
             }
-        } catch (Exception e) {
+        } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }
     }
