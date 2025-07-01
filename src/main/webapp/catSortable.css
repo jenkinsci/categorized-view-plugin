@@ -5,26 +5,7 @@ tr.categoryJobRow {
   cursor: pointer;
 }
 
-.jenkins-table > tbody > tr > td.categoryJobsColumn {
-  padding-left: 2em; 
-  padding-top: 0; 
-  padding-bottom: 0;
-}
-
-td.categoryJobsColumn > div.dashboard > table > tbody > tr {
-  border-bottom: 0;
-}
-
-td.categoryJobsColumn > div.dashboard > table > tbody > tr > td {
+tr.childJobRow > td {
   font-weight: 500;
-  border-bottom: 0;
+  padding-left: 4em !important;
 }
-
-td.categoryJobsColumn > div.dashboard > table > tbody > tr:first-child > td {
-  border-top: 0;
-}
-
-td.categoryJobsColumn > div.dashboard > table > tbody > tr > td {
-  border-top: 2px solid var(--table-background);
-}
-
