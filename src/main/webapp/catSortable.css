@@ -5,10 +5,6 @@ tr.categoryJobRow {
   cursor: pointer;
 }
 
-tr.childJobRow > td {
-  padding-left: 4em !important;
-}
-
 tr.childJobRow > td:first-of-type {
   visibility: hidden;
 }
