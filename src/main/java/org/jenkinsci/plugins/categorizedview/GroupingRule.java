@@ -3,7 +3,6 @@ package org.jenkinsci.plugins.categorizedview;
 import hudson.Extension;
 import hudson.model.Descriptor;
 import hudson.model.TopLevelItem;
-import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class GroupingRule extends CategorizationCriteria {
@@ -30,12 +29,12 @@ public class GroupingRule extends CategorizationCriteria {
             return null;
         }
 
-        final String groupNamingRule = StringUtils.isEmpty(getNamingRule()) ? "$1" : getNamingRule();
+        final String groupNamingRule = namingRule == null || namingRule.isEmpty() ? "$1" : namingRule;
         return getItemName(item).replaceAll(getNormalizedGroupRegex(), groupNamingRule);
     }
 
     private boolean isOnGroup(TopLevelItem item) {
-        if (StringUtils.isEmpty(getGroupRegex())) {
+        if (groupRegex == null || groupRegex.isEmpty()) {
             return false;
         }
 
