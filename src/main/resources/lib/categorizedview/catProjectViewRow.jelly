@@ -54,11 +54,6 @@ THE SOFTWARE.
         <st:nbsp/>
       </td>
     </tr>
-    <tr id="jobNestedItems_${job.name}" class="${view.getGroupClassFor(job)} categoryJobs" category="${job.name}" categoryRole="child">
-      <td><st:nbsp/></td>
-      <td colspan="${columnExtensions.size()+1}" class="categoryJobsColumn">
-        <c:nestedProjectsView jobs="${job.groupItems}" />
-      </td>
-    </tr>
+    <c:nestedProjectsView parentJob="${job}" jobs="${job.groupItems}" />
   </j:if>
 </j:jelly>
