@@ -21,8 +21,7 @@ class CategorizedItemsBuilderTest {
         final CategorizedItemsBuilder subject =
                 new CategorizedItemsBuilder(itemsToCategorize, List.of(new GroupingRule(groupRegex, "")));
 
-        String expected =
-                """
+        String expected = """
                 ba
                 ma
                 me
@@ -40,8 +39,7 @@ class CategorizedItemsBuilderTest {
                 new CategorizedItemsBuilder(itemsToCategorize, List.of(new GroupingRule(groupRegex, "")));
         String actual = buildResultToCompare(subject);
 
-        String expected =
-                """
+        String expected = """
                 ba
                 ma
                 me
@@ -63,8 +61,7 @@ class CategorizedItemsBuilderTest {
         final CategorizedItemsBuilder subject =
                 new CategorizedItemsBuilder(itemsToCategorize, List.of(new GroupingRule(groupRegex, "")));
 
-        String expected =
-                """
+        String expected = """
                 8.02
                   8.02-baz
                   8.02-foo
@@ -93,8 +90,7 @@ class CategorizedItemsBuilderTest {
         String groupRegex = "(8...)";
         final CategorizedItemsBuilder subject =
                 new CategorizedItemsBuilder(itemsToCategorize, List.of(new GroupingRule(groupRegex, "foo $1")));
-        String expected =
-                """
+        String expected = """
                 ba
                 foo 8.02
                   8.02-baz
@@ -123,8 +119,7 @@ class CategorizedItemsBuilderTest {
 
         List<GroupingRule> rules = List.of(new GroupingRule("(8...)", "Foo $1"), new GroupingRule("(m)", "baz $1"));
         final CategorizedItemsBuilder subject = new CategorizedItemsBuilder(itemsToCategorize, rules);
-        String expected =
-                """
+        String expected = """
                 ba
                 baz m
                   m8.03-foo
