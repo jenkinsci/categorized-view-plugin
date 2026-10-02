@@ -149,6 +149,50 @@ class CategorizedItemsBuilderTest {
         assertEquals("Foo 8.03", groupItems.get(2).getName());
     }
 
+    @Test
+    void getItems_withUseFullNameTrue_ShouldGroupByFullNamePath() {
+        List<TopLevelItem> multibranchItems = new ArrayList<>(Arrays.asList(
+                makeMockedItemWithFullName("PROJ-123", "team-service-repo/PROJ-123"),
+                makeMockedItemWithFullName("PROJ-456", "other-service-repo/PROJ-456")));
+
+        String groupRegex = "([^/]+)/PROJ-";
+        final CategorizedItemsBuilder subject = new CategorizedItemsBuilder(
+                multibranchItems, List.of(new GroupingRule(groupRegex, "$1 - PROJ", false, true)));
+
+        String expected = """
+                other-service-repo - PROJ
+                  PROJ-456
+                team-service-repo - PROJ
+                  PROJ-123
+                """;
+
+        String actual = buildResultToCompare(subject);
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void getItems_withUseFullNameFalse_ShouldGroupOnlyByShortName() {
+        // Both branches share the short name pattern "PROJ-*" even though they come from
+        // different parent jobs (visible only via getFullName()), so with useFullName=false
+        // they land in the same group, keyed off of a fixed (non-capturing) naming rule.
+        List<TopLevelItem> multibranchItems = new ArrayList<>(Arrays.asList(
+                makeMockedItemWithFullName("PROJ-123", "team-service-repo/PROJ-123"),
+                makeMockedItemWithFullName("PROJ-456", "other-service-repo/PROJ-456")));
+
+        String groupRegex = "PROJ-.*";
+        final CategorizedItemsBuilder subject = new CategorizedItemsBuilder(
+                multibranchItems, List.of(new GroupingRule(groupRegex, "PROJ Jobs", false, false)));
+
+        String expected = """
+                PROJ Jobs
+                  PROJ-123
+                  PROJ-456
+                """;
+
+        String actual = buildResultToCompare(subject);
+        assertEquals(expected, actual);
+    }
+
     private static String buildResultToCompare(final CategorizedItemsBuilder subject) {
         List<TopLevelItem> items = subject.getRegroupedItems();
         StringBuilder sb = new StringBuilder();
@@ -171,6 +215,13 @@ class CategorizedItemsBuilderTest {
     private static TopLevelItem makeMockedItem(final String value) {
         TopLevelItem mockedItem = mock(TopLevelItem.class);
         when(mockedItem.getName()).thenReturn(value);
+        return mockedItem;
+    }
+
+    private static TopLevelItem makeMockedItemWithFullName(final String shortName, final String fullName) {
+        TopLevelItem mockedItem = mock(TopLevelItem.class);
+        when(mockedItem.getName()).thenReturn(shortName);
+        when(mockedItem.getFullName()).thenReturn(fullName);
         return mockedItem;
     }
 }
