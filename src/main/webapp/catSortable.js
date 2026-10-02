@@ -212,10 +212,7 @@ var CategorizedSortable = (function () {
                 var aCategory = a.getAttribute("category");
                 var bCategory = b.getAttribute("category");
                 if (aCategory != null && aCategory == bCategory) {
-                    if (a.getAttribute("categoryRole") == "category")
-                        return -1;
-                    else
-                        return 1;
+                    return -1;
                 }
 
                 return s(this.extractData(aCell),
@@ -233,8 +230,9 @@ var CategorizedSortable = (function () {
         },
 
         getCell: function (a, columnNumber) {
-            if (a.id.match(/^jobNestedItems_/)) {
-                var groupId = "category_" + a.id.replace(/^jobNestedItems_/, "");
+            if (a.id.match(/^job_/)) {
+                var groupId = "category_" + a.getAttribute("category");
+                console.log("GROUP ID " + groupId);
                 var categoryRow = document.getElementById(groupId);
                 return categoryRow.cells[columnNumber]
             }

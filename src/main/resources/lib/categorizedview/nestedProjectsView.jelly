@@ -28,28 +28,29 @@ THE SOFTWARE.
   <st:documentation>
     Renders a list of grouped jobs.
 
+    <st:attribute name="parentJob" use="required">
+      Parent item.
+    </st:attribute>
     <st:attribute name="jobs" use="required" trim="Collection">
       Items to show.
     </st:attribute>
   </st:documentation>
 
-  <div class="dashboard">
-    <j:if test="${!empty(jobs) or !empty(attrs.views)}">
-      <!-- project list -->
-      <table id="projectstatus_${job.name}" class="pane bigtable">
-        <j:forEach var="job" items="${jobs}">
-          <j:set var="relativeLinkToJob" value="${h.getRelativeLinkTo(job)}"/>
-          <j:set var="jobBaseUrl" value="${relativeLinkToJob.substring(0, relativeLinkToJob.length() - job.shortUrl.length())}"/>
-          <tr id="job_${job.name}" class="${job.disabled?'disabledJob':null}">
-            <j:forEach var="col" items="${columnExtensions}">
-              <st:include page="column.jelly" it="${col}"/>
-            </j:forEach>
-            <td>
-              <st:nbsp/>
-            </td>
-          </tr>
+  <j:if test="${!empty(jobs) or !empty(attrs.views)}">
+    <j:forEach var="job" items="${jobs}">
+      <j:set var="relativeLinkToJob" value="${h.getRelativeLinkTo(job)}"/>
+      <j:set var="jobBaseUrl" value="${relativeLinkToJob.substring(0, relativeLinkToJob.length() - job.shortUrl.length())}"/>
+      <tr id="job_${job.name}" class="${job.disabled?'disabledJob':null} ${view.getGroupClassFor(parentJob)} childJobRow" category="${parentJob.name}" categoryRole="child" data-jobgroup="${view.getGroupClassFor(parentJob)}">
+        <td>
+          <st:nbsp/>
+        </td>
+        <j:forEach var="col" items="${columnExtensions}">
+          <st:include page="column.jelly" it="${col}"/>
         </j:forEach>
-      </table>
-    </j:if>
-  </div>
+        <td>
+          <st:nbsp/>
+        </td>
+      </tr>
+    </j:forEach>
+  </j:if>
 </j:jelly>
