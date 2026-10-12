@@ -1,5 +1,8 @@
 package org.jenkinsci.plugins.categorizedview;
 
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
 public class Utils {
 
     static String normalizeRegex(String groupRegex) {
@@ -7,14 +10,13 @@ public class Utils {
             return "";
         }
         String regex = groupRegex;
-        boolean hasGroup = regex.contains("(");
+        boolean hasGroup = hasCapturingGroup(regex);
         // A greedy leading ".*" placed directly in front of a capturing group competes with
         // that group for characters: the leftmost quantifier wins, leaving the group with only
-        // the minimum it needs (e.g. matching "([^/]+)/PROJ-" against "folder/PROJ-123" would
-        // capture just "r" for group 1 instead of "folder"). Using a reluctant ".*?" avoids this
-        // when the group doesn't already span the whole pattern. Patterns that are a single
-        // wrapping group (e.g. "(8...)") are unaffected, since there is no competition for
-        // characters outside the group in that case.
+        // the minimum it needs (e.g. matching "([^-]+)-" against "PROJ-123" would capture just
+        // "J" for group 1 instead of "PROJ"). Using a reluctant ".*?" avoids this when the group
+        // doesn't already span the whole pattern. Patterns that are a single wrapping group
+        // (e.g. "(8...)") keep the historical greedy prefix so that their behavior is unchanged.
         String leadingWildcard = hasGroup && !isSingleWrappingGroup(regex) ? ".*?" : ".*";
         if (!regex.startsWith(".*")) {
             regex = leadingWildcard + regex;
@@ -28,19 +30,48 @@ public class Utils {
         return regex;
     }
 
+    private static boolean hasCapturingGroup(String regex) {
+        try {
+            return Pattern.compile(regex).matcher("").groupCount() > 0;
+        } catch (PatternSyntaxException e) {
+            // Invalid regex: fall back to the historical heuristic and let the real error
+            // surface when the pattern is actually used for matching.
+            return regex.contains("(");
+        }
+    }
+
     /**
-     * @return true if the whole of regex is a single capturing/non-capturing group, e.g.
-     *     "(8...)", as opposed to a group that is only part of the pattern, e.g. "([^/]+)/PROJ-".
+     * @return true if the whole of regex is a single group, e.g. "(8...)" or "((a)b)", as opposed
+     *     to a group that is only part of the pattern, e.g. "([^/]+)/PROJ-" or "(a)(b)".
+     *     Parentheses that are escaped, inside a character class, or inside a \Q...\E quoted
+     *     section are not treated as group delimiters.
      */
     private static boolean isSingleWrappingGroup(String regex) {
         if (!regex.startsWith("(") || !regex.endsWith(")")) {
             return false;
         }
         int depth = 0;
+        int classDepth = 0;
         for (int i = 0; i < regex.length(); i++) {
             char c = regex.charAt(i);
             if (c == '\\') {
-                i++;
+                if (i + 1 < regex.length() && regex.charAt(i + 1) == 'Q') {
+                    int end = regex.indexOf("\\E", i + 2);
+                    i = end < 0 ? regex.length() : end + 1;
+                } else {
+                    i++;
+                }
+                continue;
+            }
+            if (c == '[') {
+                classDepth++;
+                i = skipClassOpener(regex, i);
+                continue;
+            }
+            if (classDepth > 0) {
+                if (c == ']') {
+                    classDepth--;
+                }
                 continue;
             }
             if (c == '(') {
@@ -53,5 +84,21 @@ public class Utils {
             }
         }
         return false;
+    }
+
+    /**
+     * Having found a '[' at index i, returns the index of the last character that belongs to the
+     * class opener: an optional '^', and a ']' directly after it, which Java treats as a literal
+     * member of the class rather than its end (e.g. "[]a]" and "[^]a]").
+     */
+    private static int skipClassOpener(String regex, int i) {
+        int j = i + 1;
+        if (j < regex.length() && regex.charAt(j) == '^') {
+            j++;
+        }
+        if (j < regex.length() && regex.charAt(j) == ']') {
+            return j;
+        }
+        return j - 1;
     }
 }
