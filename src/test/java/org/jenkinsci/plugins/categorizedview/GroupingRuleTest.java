@@ -29,6 +29,19 @@ class GroupingRuleTest {
     }
 
     @Test
+    void threeArgConstructor_ShouldUseDisplayNameAndDefaultUseFullNameToFalse() {
+        TopLevelItem item = mock(TopLevelItem.class);
+        when(item.getName()).thenReturn("PROJ-123");
+        when(item.getDisplayName()).thenReturn("Billing PROJ-123");
+        when(item.getFullName()).thenReturn("team-service-repo/PROJ-123");
+
+        GroupingRule subject = new GroupingRule("(\\w+) PROJ-", "$1", true);
+
+        assertFalse(subject.getUseFullName());
+        assertEquals("Billing", subject.groupNameGivenItem(item));
+    }
+
+    @Test
     void groupNameGivenItem_withUseFullNameTrue_ShouldMatchOnFullNameNotShortName() {
         TopLevelItem item = mock(TopLevelItem.class);
         when(item.getName()).thenReturn("PROJ-123");

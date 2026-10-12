@@ -50,12 +50,14 @@ public class Utils {
         if (!regex.startsWith("(") || !regex.endsWith(")")) {
             return false;
         }
+        // Because regex ends with ')', none of '\', '[' or '[^' can be the final character(s),
+        // so the look-aheads below (i + 1, and j / j + 1 in skipClassOpener) are always in range.
         int depth = 0;
         int classDepth = 0;
         for (int i = 0; i < regex.length(); i++) {
             char c = regex.charAt(i);
             if (c == '\\') {
-                if (i + 1 < regex.length() && regex.charAt(i + 1) == 'Q') {
+                if (regex.charAt(i + 1) == 'Q') {
                     int end = regex.indexOf("\\E", i + 2);
                     i = end < 0 ? regex.length() : end + 1;
                 } else {
@@ -89,14 +91,15 @@ public class Utils {
     /**
      * Having found a '[' at index i, returns the index of the last character that belongs to the
      * class opener: an optional '^', and a ']' directly after it, which Java treats as a literal
-     * member of the class rather than its end (e.g. "[]a]" and "[^]a]").
+     * member of the class rather than its end (e.g. "[]a]" and "[^]a]"). Assumes '[' is not
+     * the last character and that '^' is not the last character (see isSingleWrappingGroup).
      */
     private static int skipClassOpener(String regex, int i) {
         int j = i + 1;
-        if (j < regex.length() && regex.charAt(j) == '^') {
+        if (regex.charAt(j) == '^') {
             j++;
         }
-        if (j < regex.length() && regex.charAt(j) == ']') {
+        if (regex.charAt(j) == ']') {
             return j;
         }
         return j - 1;

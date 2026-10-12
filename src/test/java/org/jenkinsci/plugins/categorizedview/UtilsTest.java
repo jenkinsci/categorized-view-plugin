@@ -68,6 +68,19 @@ class UtilsTest {
         assertEquals(expected, Utils.normalizeRegex(input));
     }
 
+    @ParameterizedTest(name = "{0} has an unclosed group")
+    @CsvSource(
+            delimiter = ';',
+            value = {
+                "(a\\)            ; .*?(a\\).*",
+                "(\\Q)            ; .*?(\\Q).*",
+            })
+    void normalizeRegex_unclosedGroupEndingInLiteralParen_ShouldNotBeTreatedAsWrapping(String input, String expected) {
+        // The final ')' is escaped / quoted, so the opening group is never closed. These are
+        // invalid patterns; we only assert that the scan terminates and classifies them sanely.
+        assertEquals(expected, Utils.normalizeRegex(input));
+    }
+
     @Test
     void normalizeRegex_withInvalidRegex_ShouldNotThrow() {
         assertDoesNotThrow(() -> Utils.normalizeRegex("(abc"));
