@@ -9,18 +9,28 @@ public class GroupingRule extends CategorizationCriteria {
     private final String groupRegex;
     private final String namingRule;
     private boolean useDisplayName = false;
+    private boolean useFullName = false;
 
     @DataBoundConstructor
+    public GroupingRule(String groupRegex, String namingRule, boolean useDisplayName, boolean useFullName) {
+        this.groupRegex = groupRegex;
+        this.namingRule = namingRule;
+        this.useDisplayName = useDisplayName;
+        this.useFullName = useFullName;
+    }
+
     public GroupingRule(String groupRegex, String namingRule, boolean useDisplayName) {
         this.groupRegex = groupRegex;
         this.namingRule = namingRule;
         this.useDisplayName = useDisplayName;
+        this.useFullName = false;
     }
 
     public GroupingRule(String groupRegex, String namingRule) {
         this.groupRegex = groupRegex;
         this.namingRule = namingRule;
         this.useDisplayName = false;
+        this.useFullName = false;
     }
 
     @Override
@@ -42,6 +52,13 @@ public class GroupingRule extends CategorizationCriteria {
     }
 
     private String getItemName(TopLevelItem item) {
+        // useFullName takes precedence over useDisplayName when both are enabled, since the
+        // full (slash-separated) name is needed to disambiguate items with the same short name
+        // living in different folders / multibranch pipelines.
+        if (useFullName) {
+            return item.getFullName();
+        }
+
         if (!useDisplayName) {
             return item.getName();
         }
@@ -75,5 +92,9 @@ public class GroupingRule extends CategorizationCriteria {
 
     public boolean getUseDisplayName() {
         return useDisplayName;
+    }
+
+    public boolean getUseFullName() {
+        return useFullName;
     }
 }
