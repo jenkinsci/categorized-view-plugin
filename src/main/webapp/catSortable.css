@@ -5,26 +5,11 @@ tr.categoryJobRow {
   cursor: pointer;
 }
 
-.jenkins-table > tbody > tr > td.categoryJobsColumn {
-  padding-left: 2em; 
-  padding-top: 0; 
-  padding-bottom: 0;
+tr.childJobRow > td:first-of-type {
+  visibility: hidden;
 }
 
-td.categoryJobsColumn > div.dashboard > table > tbody > tr {
-  border-bottom: 0;
+tr.childJobRow > td:nth-of-type(2) {
+  border-bottom-left-radius: var(--table-row-border-radius);
+  border-top-left-radius: var(--table-row-border-radius);
 }
-
-td.categoryJobsColumn > div.dashboard > table > tbody > tr > td {
-  font-weight: 500;
-  border-bottom: 0;
-}
-
-td.categoryJobsColumn > div.dashboard > table > tbody > tr:first-child > td {
-  border-top: 0;
-}
-
-td.categoryJobsColumn > div.dashboard > table > tbody > tr > td {
-  border-top: 2px solid var(--table-background);
-}
-
