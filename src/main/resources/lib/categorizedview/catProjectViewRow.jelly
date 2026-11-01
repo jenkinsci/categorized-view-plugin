@@ -48,7 +48,14 @@ THE SOFTWARE.
         </span>
       </td>
       <j:forEach var="col" items="${columnExtensions}">
-        <st:include page="column.jelly" it="${col}"/>
+        <j:choose>
+          <j:when test="${view.isColumnVisibleOnCategoryHeader(col)}">
+            <st:include page="column.jelly" it="${col}"/>
+          </j:when>
+          <j:otherwise>
+            <td><st:nbsp/></td>
+          </j:otherwise>
+        </j:choose>
       </j:forEach>
       <td>
         <st:nbsp/>

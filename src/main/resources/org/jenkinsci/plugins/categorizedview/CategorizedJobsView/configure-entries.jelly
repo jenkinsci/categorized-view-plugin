@@ -70,6 +70,9 @@ THE SOFTWARE.
   <f:entry title="${%Ignore jobs matching the following regex on group icon color and failure computation}">
    <f:textbox name="regexToIgnoreOnColorComputing" field="regexToIgnoreOnColorComputing"/>
   </f:entry> 
+  <f:entry field="hideAggregatedInfoOnCategories" help="/plugin/categorized-view/hideAggregatedInfoOnCategories.html">
+   <f:checkbox title="${%Hide aggregated job information on category headers}" />
+  </f:entry>
   <f:block>
    <f:repeatableHeteroProperty field="categorizationCriteria" hasHeader="true" addCaption="${%Add new categorization criteria}"/>
   </f:block>

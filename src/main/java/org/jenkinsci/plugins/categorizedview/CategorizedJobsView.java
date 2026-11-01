@@ -11,6 +11,8 @@ import hudson.model.ViewDescriptor;
 import hudson.model.ViewGroup;
 import hudson.util.DescribableList;
 import hudson.util.FormValidation;
+import hudson.views.JobColumn;
+import hudson.views.ListViewColumn;
 import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -25,6 +27,7 @@ import org.kohsuke.stapler.StaplerRequest2;
 public class CategorizedJobsView extends ListView {
     private List<GroupingRule> groupingRules = new ArrayList<>();
     private String regexToIgnoreOnColorComputing = "";
+    private boolean hideAggregatedInfoOnCategories;
 
     private DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>> categorizationCriteria;
 
@@ -84,6 +87,7 @@ public class CategorizedJobsView extends ListView {
         categorizationCriteria.rebuildHetero(
                 req, req.getSubmittedForm(), CategorizationCriteria.all(), "categorizationCriteria");
         regexToIgnoreOnColorComputing = req.getParameter("regexToIgnoreOnColorComputing");
+        hideAggregatedInfoOnCategories = req.getSubmittedForm().optBoolean("hideAggregatedInfoOnCategories");
     }
 
     public DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>> getCategorizationCriteria() {
@@ -101,6 +105,16 @@ public class CategorizedJobsView extends ListView {
 
     public boolean isGroupTopLevelItem(final TopLevelItem item) {
         return item instanceof GroupTopLevelItem;
+    }
+
+    public boolean isHideAggregatedInfoOnCategories() {
+        return hideAggregatedInfoOnCategories;
+    }
+
+    // When aggregated info is hidden, the name columns stay visible on category headers
+    // so a category remains identifiable; all other columns render as empty cells.
+    public boolean isColumnVisibleOnCategoryHeader(final ListViewColumn column) {
+        return !hideAggregatedInfoOnCategories || column instanceof IndentedJobColumn || column instanceof JobColumn;
     }
 
     @Extension
