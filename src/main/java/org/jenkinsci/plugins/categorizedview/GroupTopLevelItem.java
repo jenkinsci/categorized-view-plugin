@@ -26,6 +26,7 @@ import org.springframework.security.access.AccessDeniedException;
 @SuppressWarnings("rawtypes")
 public class GroupTopLevelItem implements TopLevelItem {
     private final String groupName;
+    private final String displayName;
 
     private int nestLevel;
     private final String groupClass;
@@ -34,7 +35,13 @@ public class GroupTopLevelItem implements TopLevelItem {
     private String regexToIgnoreOnColorComputing;
 
     public GroupTopLevelItem(final String groupLabel, final String regexToIgnoreOnColorComputing) {
+        this(groupLabel, groupLabel, regexToIgnoreOnColorComputing);
+    }
+
+    public GroupTopLevelItem(
+            final String groupLabel, final String displayName, final String regexToIgnoreOnColorComputing) {
         groupName = groupLabel;
+        this.displayName = displayName;
         this.regexToIgnoreOnColorComputing = regexToIgnoreOnColorComputing;
         this.nestLevel = 0;
         this.groupClass = "g_" + groupLabel.replaceAll("[^a-zA-Z0-9_]", "_") + groupLabel.hashCode();
@@ -53,7 +60,7 @@ public class GroupTopLevelItem implements TopLevelItem {
 
     @Override
     public String getDisplayName() {
-        return groupName;
+        return displayName;
     }
 
     @Override
@@ -85,7 +92,7 @@ public class GroupTopLevelItem implements TopLevelItem {
 
     public BallColor getIconColor() {
         BallColor colorState = BallColor.NOTBUILT;
-        for (TopLevelItem item : getNestedItems()) {
+        for (TopLevelItem item : getAggregationItems()) {
             if (item instanceof Job) {
                 if (item.getName().matches(regexToIgnoreOnColorComputing)) {
                     continue;
@@ -159,7 +166,7 @@ public class GroupTopLevelItem implements TopLevelItem {
 
     public Run getLastBuildOfType(final GetBuild getBuild) {
         Run lastBuild = null;
-        for (TopLevelItem item : getNestedItems()) {
+        for (TopLevelItem item : getAggregationItems()) {
             if (item instanceof Job) {
                 Run build = getBuild.getFrom((Job) item);
                 if (lastBuild == null) {
@@ -297,7 +304,7 @@ public class GroupTopLevelItem implements TopLevelItem {
     public HealthReport getBuildHealth() {
         HealthReport lowest = new HealthReport();
         lowest.setScore(100);
-        for (TopLevelItem e : getNestedItems()) {
+        for (TopLevelItem e : getAggregationItems()) {
             if (e instanceof Job) {
                 HealthReport buildHealth = ((Job) e).getBuildHealth();
                 if (buildHealth.getScore() < lowest.getScore()) {
@@ -364,5 +371,17 @@ public class GroupTopLevelItem implements TopLevelItem {
         final Comparator<TopLevelItem> comparator = new TopLevelItemComparator();
         nestedItems.sort(comparator);
         return nestedItems;
+    }
+
+    private List<TopLevelItem> getAggregationItems() {
+        List<TopLevelItem> items = new ArrayList<>();
+        for (TopLevelItem item : getNestedItems()) {
+            if (item instanceof GroupTopLevelItem group) {
+                items.addAll(group.getAggregationItems());
+            } else {
+                items.add(item);
+            }
+        }
+        return items;
     }
 }

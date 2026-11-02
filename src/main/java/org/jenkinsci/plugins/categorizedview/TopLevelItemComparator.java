@@ -9,6 +9,8 @@ final class TopLevelItemComparator implements Comparator<TopLevelItem>, Serializ
 
     @Override
     public int compare(final TopLevelItem o1, final TopLevelItem o2) {
-        return o1.getName().compareToIgnoreCase(o2.getName());
+        String name1 = o1 instanceof GroupTopLevelItem ? o1.getDisplayName() : o1.getName();
+        String name2 = o2 instanceof GroupTopLevelItem ? o2.getDisplayName() : o2.getName();
+        return name1.compareToIgnoreCase(name2);
     }
 }
