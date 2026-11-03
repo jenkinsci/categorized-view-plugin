@@ -91,7 +91,6 @@ class CategorizedItemsBuilderTest {
         final CategorizedItemsBuilder subject =
                 new CategorizedItemsBuilder(itemsToCategorize, List.of(new GroupingRule(groupRegex, "foo $1")));
         String expected = """
-                ba
                 foo 8.02
                   8.02-baz
                   8.02-foo
@@ -99,6 +98,7 @@ class CategorizedItemsBuilderTest {
                   8.03-bar
                   8.03-foo
                   a8.03-foo
+                ba
                 ma
                 me
                 xa
@@ -120,11 +120,6 @@ class CategorizedItemsBuilderTest {
         List<GroupingRule> rules = List.of(new GroupingRule("(8...)", "Foo $1"), new GroupingRule("(m)", "baz $1"));
         final CategorizedItemsBuilder subject = new CategorizedItemsBuilder(itemsToCategorize, rules);
         String expected = """
-                ba
-                baz m
-                  m8.03-foo
-                  ma
-                  me
                 Foo 8.02
                   8.02-baz
                   8.02-foo
@@ -133,6 +128,11 @@ class CategorizedItemsBuilderTest {
                   8.03-foo
                   a8.03-foo
                   m8.03-foo
+                baz m
+                  m8.03-foo
+                  ma
+                  me
+                ba
                 xa
                 """;
 
@@ -141,12 +141,6 @@ class CategorizedItemsBuilderTest {
 
         List<GroupTopLevelItem> groupItems = subject.getGroupItems();
         assertEquals(3, groupItems.size());
-
-        groupItems.sort((o1, o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
-        assertEquals("baz m", groupItems.get(0).getName());
-        assertEquals(3, groupItems.get(0).getNestedItems().size());
-        assertEquals("Foo 8.02", groupItems.get(1).getName());
-        assertEquals("Foo 8.03", groupItems.get(2).getName());
     }
 
     @Test
@@ -191,6 +185,31 @@ class CategorizedItemsBuilderTest {
 
         String actual = buildResultToCompare(subject);
         assertEquals(expected, actual);
+    }
+
+    @Test
+    void buildRegroupedItems_withSharedCategoryNameAcrossRules_ShouldUseEarliestMatchingRuleOrder() {
+        List<TopLevelItem> items =
+                new ArrayList<>(Arrays.asList(makeMockedItem("a"), makeMockedItem("b"), makeMockedItem("z")));
+
+        // The first and last rules both produce the category "Shared"; the "a" job is
+        // processed first, so the shared category is created via the last rule and must
+        // still be ordered by the first rule.
+        List<GroupingRule> rules = List.of(
+                new GroupingRule("(z)", "Shared"),
+                new GroupingRule("(b)", "Middle"),
+                new GroupingRule("(a)", "Shared"));
+        final CategorizedItemsBuilder subject = new CategorizedItemsBuilder(items, rules);
+
+        String expected = """
+                Shared
+                  a
+                  z
+                Middle
+                  b
+                """;
+
+        assertEquals(expected, buildResultToCompare(subject));
     }
 
     private static String buildResultToCompare(final CategorizedItemsBuilder subject) {

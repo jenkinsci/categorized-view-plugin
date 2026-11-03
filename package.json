@@ -1,0 +1,7 @@
+{
+  "name": "categorized-view-plugin",
+  "private": true,
+  "scripts": {
+    "test": "node --test src/test/js/"
+  }
+}

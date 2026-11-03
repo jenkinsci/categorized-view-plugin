@@ -67,18 +67,8 @@ var CategorizedSortable = (function () {
 
         // figure out the initial sort preference
         this.pref = this.getStoredPreference();
-        if (this.pref == null) {
-            firstRow.forEach(function (cell, i) {
-                var initialSortDir = cell.getAttribute("initialSortDir");
-                if (initialSortDir != null) {
-                    this.pref = {
-                        column: i,
-                        direction: arrowTable[initialSortDir]
-                    };
-                }
-            }.bind(this));
-        }
 
+        // Automatic sorting would overwrite the server's grouping-rule order.
         this.refresh();
     }
 
