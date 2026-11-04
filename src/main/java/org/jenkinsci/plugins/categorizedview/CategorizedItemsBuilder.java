@@ -56,27 +56,45 @@ public class CategorizedItemsBuilder {
 
     private boolean tryToFitItemInCategory(final List<TopLevelItem> categorizedItems, final TopLevelItem item) {
         boolean grouped = false;
-        for (CategorizationCriteria groupingRule : groupingRules) {
-            String groupNameGivenItem = groupingRule.groupNameGivenItem(item);
+        for (int ruleIndex = 0; ruleIndex < groupingRules.size(); ruleIndex++) {
+            String groupNameGivenItem = groupingRules.get(ruleIndex).groupNameGivenItem(item);
             if (groupNameGivenItem != null) {
-                addItemToAppropriateGroup(groupNameGivenItem, categorizedItems, item);
+                addItemToAppropriateGroup(groupNameGivenItem, categorizedItems, item, ruleIndex);
                 grouped = true;
             }
         }
         return grouped;
     }
 
-    public void addItemToAppropriateGroup(
-            final String groupName, final List<TopLevelItem> categorizedItems, final TopLevelItem item) {
-        GroupTopLevelItem groupTopLevelItem = getGroupForItemOrCreateIfNeeded(categorizedItems, groupName);
+    private void addItemToAppropriateGroup(
+            final String groupName,
+            final List<TopLevelItem> categorizedItems,
+            final TopLevelItem item,
+            final int ruleIndex) {
+        GroupTopLevelItem groupTopLevelItem = getGroupForItemOrCreateIfNeeded(categorizedItems, groupName, ruleIndex);
         groupTopLevelItem.add(item);
     }
 
     private List<TopLevelItem> flattenList(final List<TopLevelItem> groupedItems) {
         final ArrayList<TopLevelItem> res = new ArrayList<>();
         itemsData = new LinkedHashMap<>();
-        groupedItems.sort(comparator);
+        List<GroupTopLevelItem> groups = new ArrayList<>();
+        List<TopLevelItem> ungroupedItems = new ArrayList<>();
         for (TopLevelItem item : groupedItems) {
+            if (item instanceof GroupTopLevelItem) {
+                groups.add((GroupTopLevelItem) item);
+            } else {
+                ungroupedItems.add(item);
+            }
+        }
+        groups.sort(Comparator.comparing(
+                        (GroupTopLevelItem group) -> groupRuleIndex.getOrDefault(group.getName(), Integer.MAX_VALUE))
+                .thenComparing(group -> group.getName(), String.CASE_INSENSITIVE_ORDER));
+        ungroupedItems.sort(comparator);
+        for (TopLevelItem group : groups) {
+            addNestedItemsAsIndentedItemsInTheResult(res, group);
+        }
+        for (TopLevelItem item : ungroupedItems) {
             addNestedItemsAsIndentedItemsInTheResult(res, item);
         }
 
@@ -89,9 +107,10 @@ public class CategorizedItemsBuilder {
     }
 
     final Map<String, GroupTopLevelItem> groupItemByGroupName = new HashMap<>();
+    private final Map<String, Integer> groupRuleIndex = new HashMap<>();
 
     private GroupTopLevelItem getGroupForItemOrCreateIfNeeded(
-            final List<TopLevelItem> groupedItems, final String groupName) {
+            final List<TopLevelItem> groupedItems, final String groupName, final int ruleIndex) {
         boolean groupIsMissing = !groupItemByGroupName.containsKey(groupName);
         if (groupIsMissing) {
             GroupTopLevelItem value = new GroupTopLevelItem(groupName, regexToIgnoreOnColorComputing);
@@ -99,6 +118,9 @@ public class CategorizedItemsBuilder {
             groupItemByGroupName.put(groupName, value);
             groupedItems.add(groupItemByGroupName.get(groupName));
         }
+        // Several rules can produce the same category name; its position is that of the
+        // earliest matching rule, regardless of which job was processed first.
+        groupRuleIndex.merge(groupName, ruleIndex, Math::min);
         return groupItemByGroupName.get(groupName);
     }
 
