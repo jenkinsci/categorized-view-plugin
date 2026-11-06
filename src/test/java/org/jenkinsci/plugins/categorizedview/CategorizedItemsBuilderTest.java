@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.categorizedview;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -212,34 +213,152 @@ class CategorizedItemsBuilderTest {
         assertEquals(expected, buildResultToCompare(subject));
     }
 
+    @Test
+    void nestedGroups_withSharedParentAcrossRules_shouldUseEarliestMatchingRuleOrder() {
+        CategorizedItemsBuilder subject = new CategorizedItemsBuilder(
+                List.of(makeMockedItem("a"), makeMockedItem("b"), makeMockedItem("z")),
+                List.of(
+                        new GroupingRule("z", "Shared/Zulu"),
+                        new GroupingRule("b", "Middle/Child"),
+                        new GroupingRule("a", "Shared/Alpha")),
+                "",
+                true);
+
+        assertEquals("""
+                Shared
+                  Alpha
+                    a
+                  Zulu
+                    z
+                Middle
+                  Child
+                    b
+                """, buildResultToCompare(subject));
+    }
+
+    @Test
+    void nestedGroups_shouldBuildAndMergePathsAtAnyDepth() {
+        TopLevelItem first = makeMockedItem("first");
+        TopLevelItem second = makeMockedItem("second");
+        TopLevelItem direct = makeMockedItem("direct");
+        CategorizedItemsBuilder subject = new CategorizedItemsBuilder(
+                List.of(first, second, direct),
+                List.of(
+                        new GroupingRule("first", "FootLocker/FLX User/Build"),
+                        new GroupingRule("second", "FootLocker/FLX User/Build"),
+                        new GroupingRule("direct", "FootLocker"),
+                        new GroupingRule("first", "Other/FLX User/Build")),
+                "",
+                true);
+
+        assertEquals("""
+                FootLocker
+                  direct
+                  FLX User
+                    Build
+                      first
+                      second
+                Other
+                  FLX User
+                    Build
+                      first
+                """, buildResultToCompare(subject));
+        assertEquals(6, subject.getGroupItems().size());
+        GroupTopLevelItem firstLeaf = subject.groupItemByGroupName.get("FootLocker/FLX User/Build");
+        GroupTopLevelItem otherLeaf = subject.groupItemByGroupName.get("Other/FLX User/Build");
+        assertNotEquals(firstLeaf.getGroupClass(), otherLeaf.getGroupClass());
+        assertEquals("Build", firstLeaf.getDisplayName());
+        assertEquals("FootLocker/FLX User/Build", firstLeaf.getFullName());
+    }
+
+    @Test
+    void nestedGroups_shouldSortSubgroupsByLabelAlongsideDirectJobs() {
+        CategorizedItemsBuilder subject = new CategorizedItemsBuilder(
+                List.of(makeMockedItem("first"), makeMockedItem("Beta"), makeMockedItem("last")),
+                List.of(
+                        new GroupingRule("first", "Parent/alpha"),
+                        new GroupingRule("Beta", "Parent"),
+                        new GroupingRule("last", "Parent/Zulu")),
+                "",
+                true);
+
+        assertEquals("""
+                Parent
+                  alpha
+                    first
+                  Beta
+                  Zulu
+                    last
+                """, buildResultToCompare(subject));
+    }
+
+    @Test
+    void nestedGroups_shouldExpandCaptureSubstitutions() {
+        CategorizedItemsBuilder subject = new CategorizedItemsBuilder(
+                List.of(makeMockedItem("FootLocker-FLX-build")),
+                List.of(new GroupingRule("^([^-]+)-([^-]+)-.*$", "$1/$2")),
+                "",
+                true);
+
+        assertEquals("""
+                FootLocker
+                  FLX
+                    FootLocker-FLX-build
+                """, buildResultToCompare(subject));
+    }
+
+    @Test
+    void nestedGroups_whenDisabled_shouldPreserveSlashesInNames() {
+        CategorizedItemsBuilder subject = new CategorizedItemsBuilder(
+                List.of(makeMockedItem("job")), List.of(new GroupingRule("job", "FootLocker/FLX User")));
+
+        assertEquals("""
+                FootLocker/FLX User
+                  job
+                """, buildResultToCompare(subject));
+        assertEquals(1, subject.getGroupItems().size());
+    }
+
+    @Test
+    void nestedGroups_shouldPreserveNamesWithEmptySegments() {
+        for (String name : List.of("/A", "A/", "A//B", "")) {
+            CategorizationCriteria rule = mock(CategorizationCriteria.class);
+            TopLevelItem item = makeMockedItem("job");
+            when(rule.groupNameGivenItem(item)).thenReturn(name);
+            CategorizedItemsBuilder subject = new CategorizedItemsBuilder(List.of(item), List.of(rule), "", true);
+
+            assertEquals(name + "\n  job\n", buildResultToCompare(subject));
+            assertEquals(1, subject.getGroupItems().size());
+        }
+    }
+
     private static String buildResultToCompare(final CategorizedItemsBuilder subject) {
         List<TopLevelItem> items = subject.getRegroupedItems();
         StringBuilder sb = new StringBuilder();
-        for (TopLevelItem indentedItem : items) {
-            sb.append(indentedItem.getName());
-            sb.append("\n");
+        appendItems(sb, items, "");
+        return sb.toString();
+    }
 
-            if (indentedItem instanceof GroupTopLevelItem) {
-                List<TopLevelItem> nestedItems = ((GroupTopLevelItem) indentedItem).getNestedItems();
-                for (TopLevelItem item : nestedItems) {
-                    sb.append("  ");
-                    sb.append(item.getName());
-                    sb.append("\n");
-                }
+    private static void appendItems(StringBuilder sb, List<TopLevelItem> items, String indent) {
+        for (TopLevelItem item : items) {
+            sb.append(indent).append(item.getDisplayName()).append("\n");
+            if (item instanceof GroupTopLevelItem group) {
+                appendItems(sb, group.getNestedItems(), indent + "  ");
             }
         }
-        return sb.toString();
     }
 
     private static TopLevelItem makeMockedItem(final String value) {
         TopLevelItem mockedItem = mock(TopLevelItem.class);
         when(mockedItem.getName()).thenReturn(value);
+        when(mockedItem.getDisplayName()).thenReturn(value);
         return mockedItem;
     }
 
     private static TopLevelItem makeMockedItemWithFullName(final String shortName, final String fullName) {
         TopLevelItem mockedItem = mock(TopLevelItem.class);
         when(mockedItem.getName()).thenReturn(shortName);
+        when(mockedItem.getDisplayName()).thenReturn(shortName);
         when(mockedItem.getFullName()).thenReturn(fullName);
         return mockedItem;
     }
