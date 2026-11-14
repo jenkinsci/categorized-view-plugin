@@ -73,6 +73,9 @@ THE SOFTWARE.
   <f:entry field="hideAggregatedInfoOnCategories" help="/plugin/categorized-view/hideAggregatedInfoOnCategories.html">
    <f:checkbox title="${%Hide aggregated job information on category headers}" />
   </f:entry>
+  <f:entry field="nestedGroups" help="/plugin/categorized-view/nestedGroups.html">
+   <f:checkbox title="${%Create nested groups from slash-separated category names}" />
+  </f:entry>
   <f:block>
    <f:repeatableHeteroProperty field="categorizationCriteria" hasHeader="true" addCaption="${%Add new categorization criteria}"/>
   </f:block>

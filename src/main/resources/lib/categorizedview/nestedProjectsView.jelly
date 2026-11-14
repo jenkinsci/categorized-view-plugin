@@ -38,16 +38,24 @@ THE SOFTWARE.
       <!-- project list -->
       <table id="projectstatus_${job.name}" class="pane bigtable">
         <j:forEach var="job" items="${jobs}">
-          <j:set var="relativeLinkToJob" value="${h.getRelativeLinkTo(job)}"/>
-          <j:set var="jobBaseUrl" value="${relativeLinkToJob.substring(0, relativeLinkToJob.length() - job.shortUrl.length())}"/>
-          <tr id="job_${job.name}" class="${job.disabled?'disabledJob':null}">
-            <j:forEach var="col" items="${columnExtensions}">
-              <st:include page="column.jelly" it="${col}"/>
-            </j:forEach>
-            <td>
-              <st:nbsp/>
-            </td>
-          </tr>
+          <j:choose>
+            <j:when test="${view.isGroupTopLevelItem(job)}">
+              <!-- Include at render time to avoid a recursive tag-library compilation cycle. -->
+              <st:include page="/lib/categorizedview/catProjectViewRow.jelly" it="${view}"/>
+            </j:when>
+            <j:otherwise>
+              <j:set var="relativeLinkToJob" value="${h.getRelativeLinkTo(job)}"/>
+              <j:set var="jobBaseUrl" value="${relativeLinkToJob.substring(0, relativeLinkToJob.length() - job.shortUrl.length())}"/>
+              <tr id="job_${job.name}" class="${job.disabled?'disabledJob':null}">
+                <j:forEach var="col" items="${columnExtensions}">
+                  <st:include page="column.jelly" it="${col}"/>
+                </j:forEach>
+                <td>
+                  <st:nbsp/>
+                </td>
+              </tr>
+            </j:otherwise>
+          </j:choose>
         </j:forEach>
       </table>
     </j:if>

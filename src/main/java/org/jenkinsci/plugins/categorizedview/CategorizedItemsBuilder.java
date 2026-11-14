@@ -2,6 +2,7 @@ package org.jenkinsci.plugins.categorizedview;
 
 import hudson.model.TopLevelItem;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -15,6 +16,7 @@ public class CategorizedItemsBuilder {
     private List<? extends CategorizationCriteria> groupingRules;
     private Map<String, TopLevelItem> itemsData;
     private String regexToIgnoreOnColorComputing;
+    private final boolean nestedGroups;
 
     public CategorizedItemsBuilder(
             final List<TopLevelItem> itemsToCategorize, final List<? extends CategorizationCriteria> groupingRules) {
@@ -25,9 +27,18 @@ public class CategorizedItemsBuilder {
             final List<TopLevelItem> items,
             final List<? extends CategorizationCriteria> groupingRules,
             final String regexToIgnoreOnColorComputing) {
+        this(items, groupingRules, regexToIgnoreOnColorComputing, false);
+    }
+
+    public CategorizedItemsBuilder(
+            final List<TopLevelItem> items,
+            final List<? extends CategorizationCriteria> groupingRules,
+            final String regexToIgnoreOnColorComputing,
+            final boolean nestedGroups) {
         this.itemsToCategorize = items;
         this.groupingRules = groupingRules;
         this.regexToIgnoreOnColorComputing = regexToIgnoreOnColorComputing;
+        this.nestedGroups = nestedGroups;
     }
 
     public List<TopLevelItem> getRegroupedItems() {
@@ -71,7 +82,22 @@ public class CategorizedItemsBuilder {
             final List<TopLevelItem> categorizedItems,
             final TopLevelItem item,
             final int ruleIndex) {
-        GroupTopLevelItem groupTopLevelItem = getGroupForItemOrCreateIfNeeded(categorizedItems, groupName, ruleIndex);
+        List<TopLevelItem> siblings = categorizedItems;
+        StringBuilder path = new StringBuilder();
+        String[] names = nestedGroups ? groupName.split("/", -1) : new String[] {groupName};
+        // Empty path segments keep the original literal name rather than creating unnamed groups.
+        if (Arrays.stream(names).anyMatch(String::isEmpty)) {
+            names = new String[] {groupName};
+        }
+        GroupTopLevelItem groupTopLevelItem = null;
+        for (String name : names) {
+            if (path.length() > 0) {
+                path.append('/');
+            }
+            path.append(name);
+            groupTopLevelItem = getGroupForItemOrCreateIfNeeded(siblings, path.toString(), name, ruleIndex);
+            siblings = groupTopLevelItem.nestedItems;
+        }
         groupTopLevelItem.add(item);
     }
 
@@ -110,10 +136,13 @@ public class CategorizedItemsBuilder {
     private final Map<String, Integer> groupRuleIndex = new HashMap<>();
 
     private GroupTopLevelItem getGroupForItemOrCreateIfNeeded(
-            final List<TopLevelItem> groupedItems, final String groupName, final int ruleIndex) {
+            final List<TopLevelItem> groupedItems,
+            final String groupName,
+            final String displayName,
+            final int ruleIndex) {
         boolean groupIsMissing = !groupItemByGroupName.containsKey(groupName);
         if (groupIsMissing) {
-            GroupTopLevelItem value = new GroupTopLevelItem(groupName, regexToIgnoreOnColorComputing);
+            GroupTopLevelItem value = new GroupTopLevelItem(groupName, displayName, regexToIgnoreOnColorComputing);
             groupItems.add(value);
             groupItemByGroupName.put(groupName, value);
             groupedItems.add(groupItemByGroupName.get(groupName));
