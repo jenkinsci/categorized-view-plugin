@@ -46,6 +46,13 @@
 
   <dependencies>
     <dependency>
+      <!-- Optional: lets category rows report the owners of their nested jobs -->
+      <groupId>com.synopsys.jenkinsci</groupId>
+      <artifactId>ownership</artifactId>
+      <version>373.vb_41d439617c2</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <scope>test</scope>
