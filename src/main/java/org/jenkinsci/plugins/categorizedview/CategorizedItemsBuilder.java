@@ -17,6 +17,7 @@ public class CategorizedItemsBuilder {
     private Map<String, TopLevelItem> itemsData;
     private String regexToIgnoreOnColorComputing;
     private final boolean nestedGroups;
+    private List<TopLevelItem> regroupedItems;
 
     public CategorizedItemsBuilder(
             final List<TopLevelItem> itemsToCategorize, final List<? extends CategorizationCriteria> groupingRules) {
@@ -42,7 +43,10 @@ public class CategorizedItemsBuilder {
     }
 
     public List<TopLevelItem> getRegroupedItems() {
-        return buildRegroupedItems();
+        if (regroupedItems == null) {
+            regroupedItems = List.copyOf(buildRegroupedItems());
+        }
+        return regroupedItems;
     }
 
     private List<TopLevelItem> buildRegroupedItems() {
@@ -82,7 +86,6 @@ public class CategorizedItemsBuilder {
             final List<TopLevelItem> categorizedItems,
             final TopLevelItem item,
             final int ruleIndex) {
-        List<TopLevelItem> siblings = categorizedItems;
         StringBuilder path = new StringBuilder();
         String[] names = nestedGroups ? groupName.split("/", -1) : new String[] {groupName};
         // Empty path segments keep the original literal name rather than creating unnamed groups.
@@ -95,8 +98,8 @@ public class CategorizedItemsBuilder {
                 path.append('/');
             }
             path.append(name);
-            groupTopLevelItem = getGroupForItemOrCreateIfNeeded(siblings, path.toString(), name, ruleIndex);
-            siblings = groupTopLevelItem.nestedItems;
+            groupTopLevelItem = getGroupForItemOrCreateIfNeeded(
+                    categorizedItems, groupTopLevelItem, path.toString(), name, ruleIndex);
         }
         groupTopLevelItem.add(item);
     }
@@ -137,6 +140,7 @@ public class CategorizedItemsBuilder {
 
     private GroupTopLevelItem getGroupForItemOrCreateIfNeeded(
             final List<TopLevelItem> groupedItems,
+            final GroupTopLevelItem parentGroup,
             final String groupName,
             final String displayName,
             final int ruleIndex) {
@@ -145,7 +149,11 @@ public class CategorizedItemsBuilder {
             GroupTopLevelItem value = new GroupTopLevelItem(groupName, displayName, regexToIgnoreOnColorComputing);
             groupItems.add(value);
             groupItemByGroupName.put(groupName, value);
-            groupedItems.add(groupItemByGroupName.get(groupName));
+            if (parentGroup == null) {
+                groupedItems.add(value);
+            } else {
+                parentGroup.add(value);
+            }
         }
         // Several rules can produce the same category name; its position is that of the
         // earliest matching rule, regardless of which job was processed first.
