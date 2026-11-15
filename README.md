@@ -62,3 +62,17 @@ A few things to keep in mind:
 
 - The groups are not mutually exclusive. It is possible for two distinct groups to have a non empty intersection of jobs.
 - If you create multiple rules that map to the same group, it will be a single group. It won't create multiple groups with the same name (as expected)
+
+### Nested groups
+
+Enable **Create nested groups from slash-separated category names** in the view configuration.
+Naming rules such as `FootLocker/FLX User` and `FootLocker/Non-FLX User` create two
+subgroups beneath FootLocker. Capture substitutions such as `$1/$2` can generate
+the hierarchy from job names, and more slashes add further levels.
+
+Groups can be expanded and collapsed independently. Parent status, health, and build
+summaries include descendant jobs. Jobs can still appear in multiple groups, and
+rules targeting the same path share a group. Empty path segments are treated as a
+literal category name. Nesting is disabled by default, preserving existing names containing `/`.
+
+![Nested categories with three grouping levels](docs/images/nested-groups.png)

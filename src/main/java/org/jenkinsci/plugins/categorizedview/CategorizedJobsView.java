@@ -28,6 +28,7 @@ public class CategorizedJobsView extends ListView {
     private List<GroupingRule> groupingRules = new ArrayList<>();
     private String regexToIgnoreOnColorComputing = "";
     private boolean hideAggregatedInfoOnCategories;
+    private boolean nestedGroups;
 
     private DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>> categorizationCriteria;
 
@@ -51,11 +52,14 @@ public class CategorizedJobsView extends ListView {
 
     public List<TopLevelItem> getGroupedItems() {
         if (categorizationCriteria == null) {
-            categorizedItemsBuilder =
-                    new CategorizedItemsBuilder(super.getItems(), groupingRules, getRegexToIgnoreOnColorComputing());
+            categorizedItemsBuilder = new CategorizedItemsBuilder(
+                    super.getItems(), groupingRules, getRegexToIgnoreOnColorComputing(), nestedGroups);
         } else {
             categorizedItemsBuilder = new CategorizedItemsBuilder(
-                    super.getItems(), categorizationCriteria.toList(), getRegexToIgnoreOnColorComputing());
+                    super.getItems(),
+                    categorizationCriteria.toList(),
+                    getRegexToIgnoreOnColorComputing(),
+                    nestedGroups);
         }
 
         return categorizedItemsBuilder.getRegroupedItems();
@@ -88,6 +92,7 @@ public class CategorizedJobsView extends ListView {
                 req, req.getSubmittedForm(), CategorizationCriteria.all(), "categorizationCriteria");
         regexToIgnoreOnColorComputing = req.getParameter("regexToIgnoreOnColorComputing");
         hideAggregatedInfoOnCategories = req.getSubmittedForm().optBoolean("hideAggregatedInfoOnCategories");
+        nestedGroups = req.getSubmittedForm().optBoolean("nestedGroups");
     }
 
     public DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>> getCategorizationCriteria() {
@@ -109,6 +114,10 @@ public class CategorizedJobsView extends ListView {
 
     public boolean isHideAggregatedInfoOnCategories() {
         return hideAggregatedInfoOnCategories;
+    }
+
+    public boolean isNestedGroups() {
+        return nestedGroups;
     }
 
     // When aggregated info is hidden, the name columns stay visible on category headers

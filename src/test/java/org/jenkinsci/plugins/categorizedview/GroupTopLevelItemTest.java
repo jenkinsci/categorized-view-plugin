@@ -22,6 +22,30 @@ class GroupTopLevelItemTest {
     private final GroupTopLevelItem subject = new GroupTopLevelItem("", ".*ignore-me.*");
 
     @Test
+    void nestedGroups_shouldAggregateDescendantJobs() {
+        GroupTopLevelItem child = new GroupTopLevelItem("Child", ".*ignore-me.*");
+        GroupTopLevelItem grandchild = new GroupTopLevelItem("Child/Grandchild", ".*ignore-me.*");
+        subject.add(child);
+        child.add(grandchild);
+        subject.add(makeProjectWithColor(BallColor.BLUE));
+        grandchild.add(makeProjectWithColor(BallColor.YELLOW));
+        grandchild.add(makeProjectWithColor(BallColor.RED, "ignore-me"));
+        assertEquals(BallColor.YELLOW, subject.getIconColor());
+
+        grandchild.nestedItems.clear();
+        child.add(makeProjectWithHealth(80));
+        grandchild.add(makeProjectWithHealth(30));
+        assertEquals(30, child.getBuildHealth().getScore());
+
+        grandchild.nestedItems.clear();
+        grandchild.add(makeProjectWithLastBuildDate(ZonedDateTime.parse("2014-03-30T18:00:00-03:00")));
+        subject.add(makeProjectWithLastBuildDate(ZonedDateTime.parse("2014-03-28T18:00:00-03:00")));
+
+        assertEquals(
+                "2014-03-30T18:00:00-03:00", dateString(subject.getLastBuild().getTimestamp()));
+    }
+
+    @Test
     void getBuildHealth_returnsWorstHealthValue() {
         subject.add(makeProjectWithHealth(80));
         subject.add(makeProjectWithHealth(30));
