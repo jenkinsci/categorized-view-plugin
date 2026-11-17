@@ -53,6 +53,44 @@ class GroupOwnershipHelperLocatorTest {
     }
 
     @Test
+    void conflictingOwnersInSubgroup_shouldShowUnknownOnParentRow(JenkinsRule r) throws Exception {
+        User.getById("ownerA", true);
+        User.getById("ownerB", true);
+        JobOwnerHelper.setOwnership(r.createFreeStyleProject("a"), new OwnershipDescription(true, "ownerA", null));
+        JobOwnerHelper.setOwnership(r.createFreeStyleProject("b"), new OwnershipDescription(true, "ownerA", null));
+        JobOwnerHelper.setOwnership(r.createFreeStyleProject("c"), new OwnershipDescription(true, "ownerB", null));
+
+        GroupTopLevelItem parent = groupOf(r, "a");
+        parent.add(groupOf(r, "b", "c"));
+
+        assertEquals(
+                OwnershipInfo.DISABLED_INFO.getDescription(),
+                helperFor(parent).getOwnershipInfo(parent).getDescription());
+        assertEquals(User.getUnknown().getId(), new JobOwnerColumn().getJobOwner(parent));
+
+        GroupTopLevelItem ancestor = groupOf(r, "a");
+        ancestor.add(parent);
+        assertEquals(User.getUnknown().getId(), new JobOwnerColumn().getJobOwner(ancestor));
+    }
+
+    @Test
+    void commonOwnerAcrossSubgroups_shouldBeReportedOnParentRow(JenkinsRule r) throws Exception {
+        User.getById("owner", true);
+        JobOwnerHelper.setOwnership(r.createFreeStyleProject("a"), new OwnershipDescription(true, "owner", null));
+        JobOwnerHelper.setOwnership(r.createFreeStyleProject("b"), new OwnershipDescription(true, "owner", null));
+        r.createFreeStyleProject("unowned");
+
+        GroupTopLevelItem parent = groupOf(r, "a");
+        parent.add(groupOf(r, "b"));
+        parent.add(groupOf(r, "unowned"));
+        parent.add(groupOf(r));
+
+        JobOwnerColumn column = new JobOwnerColumn();
+        assertTrue(column.isOwnerExists(parent));
+        assertEquals("owner", column.getJobOwner(parent));
+    }
+
+    @Test
     void nestedJobsWithoutOwnership_shouldShowUnknownOnCategoryRow(JenkinsRule r) throws Exception {
         r.createFreeStyleProject("a");
         r.createFreeStyleProject("b");

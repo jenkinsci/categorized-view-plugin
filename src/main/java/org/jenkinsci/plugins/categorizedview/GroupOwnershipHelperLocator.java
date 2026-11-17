@@ -7,6 +7,8 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.Job;
 import hudson.model.TopLevelItem;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Objects;
 import org.jenkinsci.plugins.ownership.model.OwnershipHelperLocator;
 import org.jenkinsci.plugins.ownership.model.OwnershipInfo;
@@ -51,7 +53,13 @@ public class GroupOwnershipHelperLocator extends OwnershipHelperLocator<GroupTop
         @Override
         public @NonNull OwnershipInfo getOwnershipInfo(@NonNull GroupTopLevelItem item) {
             OwnershipInfo common = null;
-            for (TopLevelItem nested : item.getNestedItems()) {
+            Deque<TopLevelItem> pending = new ArrayDeque<>(item.getNestedItems());
+            while (!pending.isEmpty()) {
+                TopLevelItem nested = pending.removeFirst();
+                if (nested instanceof GroupTopLevelItem) {
+                    pending.addAll(((GroupTopLevelItem) nested).getNestedItems());
+                    continue;
+                }
                 OwnershipInfo info = getOwnershipInfo(nested);
                 // Unowned nested jobs don't count as a disagreement; they just carry no vote.
                 if (info == null || !info.getDescription().isOwnershipEnabled()) {
@@ -71,9 +79,6 @@ public class GroupOwnershipHelperLocator extends OwnershipHelperLocator<GroupTop
         }
 
         private OwnershipInfo getOwnershipInfo(TopLevelItem item) {
-            if (item instanceof GroupTopLevelItem) {
-                return getOwnershipInfo((GroupTopLevelItem) item);
-            }
             if (item instanceof Job<?, ?>) {
                 AbstractOwnershipHelper<Job> helper = OwnershipHelperLocator.locate(item, Job.class);
                 if (helper != null) {
