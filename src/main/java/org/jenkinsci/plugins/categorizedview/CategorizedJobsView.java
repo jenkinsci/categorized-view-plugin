@@ -32,8 +32,6 @@ public class CategorizedJobsView extends ListView {
 
     private DescribableList<CategorizationCriteria, Descriptor<CategorizationCriteria>> categorizationCriteria;
 
-    private transient CategorizedItemsBuilder categorizedItemsBuilder;
-
     @DataBoundConstructor
     @SuppressFBWarnings(
             value = {"MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR", "UR_UNINIT_READ"},
@@ -51,6 +49,7 @@ public class CategorizedJobsView extends ListView {
     }
 
     public List<TopLevelItem> getGroupedItems() {
+        CategorizedItemsBuilder categorizedItemsBuilder;
         if (categorizationCriteria == null) {
             categorizedItemsBuilder = new CategorizedItemsBuilder(
                     super.getItems(), groupingRules, getRegexToIgnoreOnColorComputing(), nestedGroups);
@@ -101,7 +100,7 @@ public class CategorizedJobsView extends ListView {
     }
 
     public String getGroupClassFor(final TopLevelItem item) {
-        return categorizedItemsBuilder.getGroupClassFor(item);
+        return item instanceof GroupTopLevelItem group ? group.getGroupClass() : "";
     }
 
     public boolean hasLink(final TopLevelItem item) {

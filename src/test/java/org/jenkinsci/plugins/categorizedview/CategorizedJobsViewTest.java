@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import hudson.model.BallColor;
 import hudson.views.JobColumn;
 import hudson.views.StatusColumn;
 import hudson.views.WeatherColumn;
@@ -109,6 +110,23 @@ class CategorizedJobsViewTest {
         assertTrue(reloaded.getHtmlElementById("jobNestedItems_FootLocker/FLX User")
                 .getAttribute("style")
                 .contains("display: none"));
+    }
+
+    @Test
+    void getGroupedItems_shouldRefreshAggregatesForEachRender(JenkinsRule r) throws Exception {
+        CategorizedJobsView view = new CategorizedJobsView("Categories");
+        r.jenkins.addView(view);
+        var project = r.createFreeStyleProject("job");
+        view.add(project);
+        view.getCategorizationCriteria().add(new GroupingRule("job", "Group"));
+
+        GroupTopLevelItem before = (GroupTopLevelItem) view.getGroupedItems().get(0);
+        assertEquals(BallColor.NOTBUILT, before.getIconColor());
+        r.buildAndAssertSuccess(project);
+
+        GroupTopLevelItem after = (GroupTopLevelItem) view.getGroupedItems().get(0);
+        assertEquals(BallColor.BLUE, after.getIconColor());
+        assertEquals(BallColor.NOTBUILT, before.getIconColor());
     }
 
     @Test
