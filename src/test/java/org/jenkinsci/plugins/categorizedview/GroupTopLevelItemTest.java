@@ -1,7 +1,12 @@
 package org.jenkinsci.plugins.categorizedview;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import hudson.model.BallColor;
@@ -14,6 +19,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.List;
 import org.jenkinsci.plugins.categorizedview.GroupTopLevelItem.GetBuild;
 import org.junit.jupiter.api.Test;
 
@@ -46,8 +52,83 @@ class GroupTopLevelItemTest {
     }
 
     @Test
+    void add_toBuilderCreatedNestedChild_shouldRefreshAlreadyReadParentAggregates() {
+        FreeStyleProject initial = makeMockProject("job");
+        when(initial.getIconColor()).thenReturn(BallColor.BLUE);
+        HealthReport initialHealth = new HealthReport();
+        initialHealth.setScore(100);
+        when(initial.getBuildHealth()).thenReturn(initialHealth);
+        CategorizedItemsBuilder builder = new CategorizedItemsBuilder(
+                List.of(initial), List.of(new GroupingRule("job", "Parent/Child/Grandchild")), ".*ignore-me.*", true);
+        GroupTopLevelItem parent =
+                (GroupTopLevelItem) builder.getRegroupedItems().get(0);
+        GroupTopLevelItem child = (GroupTopLevelItem) parent.getNestedItems().get(0);
+        GroupTopLevelItem grandchild =
+                (GroupTopLevelItem) child.getNestedItems().get(0);
+
+        for (GroupTopLevelItem group : List.of(parent, child)) {
+            assertEquals(BallColor.BLUE, group.getIconColor());
+            assertEquals(100, group.getBuildHealth().getScore());
+            assertNull(group.getLastBuild());
+        }
+
+        grandchild.add(makeProjectWithColorHealthAndBuild(
+                BallColor.RED, 20, ZonedDateTime.parse("2014-03-30T18:00:00-03:00")));
+
+        for (GroupTopLevelItem group : List.of(parent, child)) {
+            assertEquals(BallColor.RED, group.getIconColor());
+            assertEquals(20, group.getBuildHealth().getScore());
+            assertNotNull(group.getLastBuild());
+            assertEquals(
+                    "2014-03-30T18:00:00-03:00", dateString(group.getLastBuild().getTimestamp()));
+        }
+    }
+
+    @Test
+    void getters_shouldComputeRequestedValuesOnceIncludingMissingBuilds() {
+        FreeStyleProject project = makeMockProject("job");
+        when(project.getIconColor()).thenReturn(BallColor.BLUE);
+        HealthReport health = new HealthReport();
+        health.setScore(100);
+        when(project.getBuildHealth()).thenReturn(health);
+        FreeStyleBuild build = mock(FreeStyleBuild.class);
+        when(build.getTimestamp()).thenReturn(new GregorianCalendar(2026, Calendar.JANUARY, 1));
+        when(project.getLastBuild()).thenReturn(build);
+        subject.add(project);
+
+        for (int i = 0; i < 2; i++) {
+            assertEquals(BallColor.BLUE, subject.getIconColor());
+            assertEquals(100, subject.getBuildHealth().getScore());
+            assertEquals(build, subject.getLastBuild());
+            assertNull(subject.getLastFailedBuild());
+        }
+
+        verify(project).getIconColor();
+        verify(project).getBuildHealth();
+        verify(project).getLastBuild();
+        verify(project).getLastFailedBuild();
+        verify(project, never()).getLastSuccessfulBuild();
+        verify(project, never()).getLastStableBuild();
+        verify(project, never()).getLastUnsuccessfulBuild();
+    }
+
+    @Test
+    void getNestedItems_shouldReturnSortedSnapshotsWithoutExposingTheMutableList() {
+        TopLevelItem second = makeMockProject("b");
+        TopLevelItem first = makeMockProject("a");
+        subject.add(second);
+        List<TopLevelItem> before = subject.getNestedItems();
+        subject.add(first);
+
+        assertEquals(List.of(second), before);
+        assertEquals(List.of(first, second), subject.getNestedItems());
+        assertThrows(UnsupportedOperationException.class, () -> before.add(first));
+    }
+
+    @Test
     void getBuildHealth_returnsWorstHealthValue() {
         subject.add(makeProjectWithHealth(80));
+        assertEquals(80, subject.getBuildHealth().getScore());
         subject.add(makeProjectWithHealth(30));
 
         assertEquals(30, subject.getBuildHealth().getScore());
@@ -213,6 +294,19 @@ class GroupTopLevelItemTest {
         healthReport.setScore(score);
         when(freeStyleProject.getBuildHealth()).thenReturn(healthReport);
         return freeStyleProject;
+    }
+
+    private static FreeStyleProject makeProjectWithColorHealthAndBuild(
+            final BallColor color, final int healthScore, final ZonedDateTime lastBuildDate) {
+        FreeStyleProject project = makeMockProject();
+        when(project.getIconColor()).thenReturn(color);
+        HealthReport healthReport = new HealthReport();
+        healthReport.setScore(healthScore);
+        when(project.getBuildHealth()).thenReturn(healthReport);
+        FreeStyleBuild lastBuild = mock(FreeStyleBuild.class);
+        when(lastBuild.getTimestamp()).thenReturn(GregorianCalendar.from(lastBuildDate));
+        when(project.getLastBuild()).thenReturn(lastBuild);
+        return project;
     }
 
     private static TopLevelItem makeMockToGetBuild(final ZonedDateTime parse, final GetBuild getBuild) {

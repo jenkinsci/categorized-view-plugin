@@ -1,6 +1,5 @@
 package org.jenkinsci.plugins.categorizedview;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.model.BallColor;
 import hudson.model.HealthReport;
 import hudson.model.Item;
@@ -19,7 +18,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import jenkins.model.Jenkins;
 import org.springframework.security.access.AccessDeniedException;
 
@@ -30,9 +31,14 @@ public class GroupTopLevelItem implements TopLevelItem {
 
     private int nestLevel;
     private final String groupClass;
+    private GroupTopLevelItem parentGroup;
     protected List<TopLevelItem> nestedItems = new ArrayList<>();
 
     private String regexToIgnoreOnColorComputing;
+    private List<TopLevelItem> sortedItems;
+    private BallColor iconColor;
+    private HealthReport buildHealth;
+    private final Map<GetBuild, Run> lastBuilds = new HashMap<>();
 
     public GroupTopLevelItem(final String groupLabel, final String regexToIgnoreOnColorComputing) {
         this(groupLabel, groupLabel, regexToIgnoreOnColorComputing);
@@ -70,6 +76,20 @@ public class GroupTopLevelItem implements TopLevelItem {
 
     public void add(final TopLevelItem item) {
         nestedItems.add(item);
+        if (item instanceof GroupTopLevelItem group) {
+            group.parentGroup = this;
+        }
+        invalidateAggregates();
+    }
+
+    private void invalidateAggregates() {
+        sortedItems = null;
+        iconColor = null;
+        buildHealth = null;
+        lastBuilds.clear();
+        if (parentGroup != null) {
+            parentGroup.invalidateAggregates();
+        }
     }
 
     @Override
@@ -91,6 +111,9 @@ public class GroupTopLevelItem implements TopLevelItem {
     public void checkPermission(final Permission permission) throws AccessDeniedException {}
 
     public BallColor getIconColor() {
+        if (iconColor != null) {
+            return iconColor;
+        }
         BallColor colorState = BallColor.NOTBUILT;
         for (TopLevelItem item : getAggregationItems()) {
             if (item instanceof Job) {
@@ -101,70 +124,34 @@ public class GroupTopLevelItem implements TopLevelItem {
                 colorState = chooseNextColor(colorState, projectColorState);
             }
         }
-        return colorState;
+        iconColor = colorState;
+        return iconColor;
     }
 
-    @SuppressFBWarnings(
-            value = "SIC_INNER_SHOULD_BE_STATIC_ANON",
-            justification = "let me just make the 'init' build pass")
     public Run getLastBuild() {
-        return getLastBuildOfType(new GetBuild() {
-            @Override
-            public Run getFrom(final Job project) {
-                return project.getLastBuild();
-            }
-        });
+        return getLastBuildOfType(GetBuild.LAST);
     }
 
-    @SuppressFBWarnings(
-            value = "SIC_INNER_SHOULD_BE_STATIC_ANON",
-            justification = "let me just make the 'init' build pass")
     public Run getLastSuccessfulBuild() {
-        return getLastBuildOfType(new GetBuild() {
-            @Override
-            public Run getFrom(final Job project) {
-                return project.getLastSuccessfulBuild();
-            }
-        });
+        return getLastBuildOfType(GetBuild.SUCCESSFUL);
     }
 
-    @SuppressFBWarnings(
-            value = "SIC_INNER_SHOULD_BE_STATIC_ANON",
-            justification = "let me just make the 'init' build pass")
     public Run getLastStableBuild() {
-        return getLastBuildOfType(new GetBuild() {
-            @Override
-            public Run getFrom(final Job project) {
-                return project.getLastStableBuild();
-            }
-        });
+        return getLastBuildOfType(GetBuild.STABLE);
     }
 
-    @SuppressFBWarnings(
-            value = "SIC_INNER_SHOULD_BE_STATIC_ANON",
-            justification = "let me just make the 'init' build pass")
     public Run getLastFailedBuild() {
-        return getLastBuildOfType(new GetBuild() {
-            @Override
-            public Run getFrom(final Job project) {
-                return project.getLastFailedBuild();
-            }
-        });
+        return getLastBuildOfType(GetBuild.FAILED);
     }
 
-    @SuppressFBWarnings(
-            value = "SIC_INNER_SHOULD_BE_STATIC_ANON",
-            justification = "let me just make the 'init' build pass")
     public Run getLastUnsuccessfulBuild() {
-        return getLastBuildOfType(new GetBuild() {
-            @Override
-            public Run getFrom(final Job project) {
-                return project.getLastUnsuccessfulBuild();
-            }
-        });
+        return getLastBuildOfType(GetBuild.UNSUCCESSFUL);
     }
 
     public Run getLastBuildOfType(final GetBuild getBuild) {
+        if (lastBuilds.containsKey(getBuild)) {
+            return lastBuilds.get(getBuild);
+        }
         Run lastBuild = null;
         for (TopLevelItem item : getAggregationItems()) {
             if (item instanceof Job) {
@@ -183,10 +170,18 @@ public class GroupTopLevelItem implements TopLevelItem {
                 }
             }
         }
+        // A missing build is also a result; computeIfAbsent would repeat that lookup.
+        lastBuilds.put(getBuild, lastBuild);
         return lastBuild;
     }
 
     static interface GetBuild {
+        GetBuild LAST = Job::getLastBuild;
+        GetBuild SUCCESSFUL = Job::getLastSuccessfulBuild;
+        GetBuild STABLE = Job::getLastStableBuild;
+        GetBuild FAILED = Job::getLastFailedBuild;
+        GetBuild UNSUCCESSFUL = Job::getLastUnsuccessfulBuild;
+
         public Run getFrom(Job project);
     }
 
@@ -302,6 +297,9 @@ public class GroupTopLevelItem implements TopLevelItem {
     }
 
     public HealthReport getBuildHealth() {
+        if (buildHealth != null) {
+            return buildHealth;
+        }
         HealthReport lowest = new HealthReport();
         lowest.setScore(100);
         for (TopLevelItem e : getAggregationItems()) {
@@ -312,7 +310,8 @@ public class GroupTopLevelItem implements TopLevelItem {
                 }
             }
         }
-        return lowest;
+        buildHealth = lowest;
+        return buildHealth;
     }
 
     public List<HealthReport> getBuildHealthReports() {
@@ -368,9 +367,13 @@ public class GroupTopLevelItem implements TopLevelItem {
     StringBuilder specificCss = new StringBuilder();
 
     public List<TopLevelItem> getNestedItems() {
-        final Comparator<TopLevelItem> comparator = new TopLevelItemComparator();
-        nestedItems.sort(comparator);
-        return nestedItems;
+        if (sortedItems == null) {
+            List<TopLevelItem> items = new ArrayList<>(nestedItems);
+            final Comparator<TopLevelItem> comparator = new TopLevelItemComparator();
+            items.sort(comparator);
+            sortedItems = List.copyOf(items);
+        }
+        return sortedItems;
     }
 
     private List<TopLevelItem> getAggregationItems() {

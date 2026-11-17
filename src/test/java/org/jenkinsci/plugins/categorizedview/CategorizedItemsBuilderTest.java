@@ -17,6 +17,19 @@ class CategorizedItemsBuilderTest {
             Arrays.asList(makeMockedItem("xa"), makeMockedItem("ba"), makeMockedItem("me"), makeMockedItem("ma")));
 
     @Test
+    void getRegroupedItems_shouldNotRebuildOrDuplicateGroupsOnRepeatedCalls() {
+        TopLevelItem job = makeMockedItem("job");
+        CategorizedItemsBuilder subject =
+                new CategorizedItemsBuilder(List.of(job), List.of(new GroupingRule("job", "Group")));
+
+        List<TopLevelItem> first = subject.getRegroupedItems();
+        assertEquals(first, subject.getRegroupedItems());
+        assertEquals(1, first.size());
+        assertEquals(List.of(job), ((GroupTopLevelItem) first.get(0)).getNestedItems());
+        assertEquals(1, subject.getGroupItems().size());
+    }
+
+    @Test
     void getItems_withNullRegex_ShouldReturnSortedList() {
         String groupRegex = null;
         final CategorizedItemsBuilder subject =
