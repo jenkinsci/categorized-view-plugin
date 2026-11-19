@@ -28,6 +28,14 @@ class GroupTopLevelItemTest {
     private final GroupTopLevelItem subject = new GroupTopLevelItem("", ".*ignore-me.*");
 
     @Test
+    void invalidLegacyIgnoreRegexShouldIncludeAllJobs() {
+        GroupTopLevelItem group = new GroupTopLevelItem("Group", "[");
+        group.add(makeProjectWithColor(BallColor.RED, "failure"));
+        assertEquals(BallColor.RED, group.getIconColor());
+        assertEquals(BallColor.RED, group.getIconColor());
+    }
+
+    @Test
     void nestedGroups_shouldAggregateDescendantJobs() {
         GroupTopLevelItem child = new GroupTopLevelItem("Child", ".*ignore-me.*");
         GroupTopLevelItem grandchild = new GroupTopLevelItem("Child/Grandchild", ".*ignore-me.*");
