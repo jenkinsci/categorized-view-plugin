@@ -1,5 +1,7 @@
 package org.jenkinsci.plugins.categorizedview;
 
+import hudson.model.Item;
+import hudson.model.ItemGroup;
 import hudson.model.TopLevelItem;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,6 +20,7 @@ public class CategorizedItemsBuilder {
     private Map<String, TopLevelItem> itemsData;
     private final Pattern ignorePattern;
     private final boolean nestedGroups;
+    private final ItemGroup<? extends Item> groupParent;
     private List<TopLevelItem> regroupedItems;
 
     public CategorizedItemsBuilder(
@@ -37,18 +40,25 @@ public class CategorizedItemsBuilder {
             final List<? extends CategorizationCriteria> groupingRules,
             final String regexToIgnoreOnColorComputing,
             final boolean nestedGroups) {
-        this(items, groupingRules, GroupTopLevelItem.compileIgnorePattern(regexToIgnoreOnColorComputing), nestedGroups);
+        this(
+                items,
+                groupingRules,
+                GroupTopLevelItem.compileIgnorePattern(regexToIgnoreOnColorComputing),
+                nestedGroups,
+                null);
     }
 
     CategorizedItemsBuilder(
             final List<TopLevelItem> items,
             final List<? extends CategorizationCriteria> groupingRules,
             final Pattern ignorePattern,
-            final boolean nestedGroups) {
+            final boolean nestedGroups,
+            final ItemGroup<? extends Item> groupParent) {
         this.itemsToCategorize = items;
         this.groupingRules = groupingRules;
         this.ignorePattern = ignorePattern;
         this.nestedGroups = nestedGroups;
+        this.groupParent = groupParent;
     }
 
     public List<TopLevelItem> getRegroupedItems() {
@@ -155,7 +165,7 @@ public class CategorizedItemsBuilder {
             final int ruleIndex) {
         boolean groupIsMissing = !groupItemByGroupName.containsKey(groupName);
         if (groupIsMissing) {
-            GroupTopLevelItem value = new GroupTopLevelItem(groupName, displayName, ignorePattern);
+            GroupTopLevelItem value = new GroupTopLevelItem(groupName, displayName, ignorePattern, groupParent);
             groupItems.add(value);
             groupItemByGroupName.put(groupName, value);
             if (parentGroup == null) {
