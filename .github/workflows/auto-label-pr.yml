@@ -1,0 +1,90 @@
+# Auto-label PRs based on title and branch.
+# Adds release-drafter compatible labels for changelog generation.
+name: Auto-label PR
+
+on:
+  # Use pull_request_target so the workflow has write permissions even for fork PRs.
+  # SECURITY: Do not check out or execute code from the PR in this workflow.
+  pull_request_target:
+    types: [opened, edited]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  auto-label:
+    # Only re-label when the title is set or changed, so labels a maintainer
+    # adjusts by hand afterwards are not overwritten on every push.
+    if: github.event.action == 'opened' || github.event.changes.title != null
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auto-label based on title and branch
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const title = pr.title.toLowerCase();
+            const branch = pr.head.ref.toLowerCase();
+            const currentLabels = pr.labels.map(l => l.name);
+
+            console.log(`PR #${pr.number}: "${pr.title}"`);
+            console.log(`  Branch: ${branch}`);
+            console.log(`  Current labels: ${currentLabels.join(', ') || 'none'}`);
+
+            // Ordered by changelog precedence: the first matching rule wins.
+            const rules = [
+              { label: 'breaking', title: t => t.includes('breaking') || t.includes('!:'), branch: b => b.startsWith('breaking/') },
+              { label: 'removed', title: t => t.includes('remove') },
+              { label: 'major-enhancement', title: t => t.includes('major') && (t.includes('feat') || t.includes('enhancement')) },
+              { label: 'major-bug', title: t => t.includes('major') && (t.includes('fix') || t.includes('bug')) },
+              { label: 'deprecated', title: t => t.includes('deprecat') },
+              { label: 'enhancement',
+                title: t => t.startsWith('feat') || t.includes('feature') || t.includes('enhancement') || t.startsWith('add ') || t.startsWith('add:'),
+                branch: b => b.startsWith('feature/') || b.startsWith('feat/') },
+              { label: 'bug',
+                title: t => t.startsWith('fix') || t.includes('bugfix') || t.includes('bug fix') || t.includes('regression'),
+                branch: b => b.startsWith('fix/') || b.startsWith('bugfix/') },
+              { label: 'documentation', title: t => t.startsWith('docs') || t.startsWith('doc:'), branch: b => b.startsWith('docs/') || b.startsWith('doc/') },
+              { label: 'chore',
+                title: t => t.startsWith('chore') || t.startsWith('maint') || t.startsWith('ci:') || t.startsWith('build:'),
+                branch: b => b.startsWith('chore/') || b.startsWith('maint/') },
+              { label: 'refactor', title: t => t.startsWith('refactor') || t.includes('refactoring'), branch: b => b.startsWith('refactor/') },
+              { label: 'tests', title: t => t.startsWith('test'), branch: b => b.startsWith('test/') },
+            ];
+
+            // The title is the author's explicit intent; the branch name is only a fallback.
+            const category = rules.find(r => r.title?.(title)) ?? rules.find(r => r.branch?.(branch));
+            const isSecurity = title.includes('security') || title.includes('cve-') ||
+              title.includes('vulnerability') || branch.startsWith('security/');
+
+            const wanted = [category?.label, isSecurity ? 'security' : null].filter(Boolean);
+            const toAdd = wanted.filter(l => !currentLabels.includes(l));
+            // With no match, keep whatever category a maintainer may have picked by hand.
+            const toRemove = category
+              ? currentLabels.filter(l => l !== category.label && rules.some(r => r.label === l))
+              : [];
+
+            for (const name of toRemove) {
+              console.log(`  → Removing label: ${name}`);
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                name
+              });
+            }
+
+            if (toAdd.length > 0) {
+              console.log(`  → Adding labels: ${toAdd.join(', ')}`);
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                labels: toAdd
+              });
+            } else {
+              console.log('  → No new labels to add');
+            }
+
