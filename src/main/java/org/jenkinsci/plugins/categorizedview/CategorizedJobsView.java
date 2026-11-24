@@ -27,6 +27,8 @@ import org.kohsuke.stapler.StaplerRequest2;
 public class CategorizedJobsView extends ListView {
     private List<GroupingRule> groupingRules = new ArrayList<>();
     private String regexToIgnoreOnColorComputing = "";
+    private transient String compiledIgnoreRegex;
+    private transient Pattern ignorePattern;
     private boolean hideAggregatedInfoOnCategories;
     private boolean nestedGroups;
 
@@ -51,17 +53,24 @@ public class CategorizedJobsView extends ListView {
     public List<TopLevelItem> getGroupedItems() {
         CategorizedItemsBuilder categorizedItemsBuilder;
         if (categorizationCriteria == null) {
-            categorizedItemsBuilder = new CategorizedItemsBuilder(
-                    super.getItems(), groupingRules, getRegexToIgnoreOnColorComputing(), nestedGroups);
+            categorizedItemsBuilder =
+                    new CategorizedItemsBuilder(super.getItems(), groupingRules, getIgnorePattern(), nestedGroups);
         } else {
             categorizedItemsBuilder = new CategorizedItemsBuilder(
-                    super.getItems(),
-                    categorizationCriteria.toList(),
-                    getRegexToIgnoreOnColorComputing(),
-                    nestedGroups);
+                    super.getItems(), categorizationCriteria.toList(), getIgnorePattern(), nestedGroups);
         }
 
         return categorizedItemsBuilder.getRegroupedItems();
+    }
+
+    private synchronized Pattern getIgnorePattern() {
+        String regex = getRegexToIgnoreOnColorComputing();
+        if (!regex.equals(compiledIgnoreRegex)) {
+            ignorePattern = GroupTopLevelItem.compileIgnorePattern(regex);
+            // Remember invalid expressions too, so rebuilding groups does not repeat the warning.
+            compiledIgnoreRegex = regex;
+        }
+        return ignorePattern;
     }
 
     public String getRegexToIgnoreOnColorComputing() {
@@ -86,10 +95,20 @@ public class CategorizedJobsView extends ListView {
 
     @Override
     protected void submit(final StaplerRequest2 req) throws ServletException, FormException, IOException {
+        String ignoreRegex = req.getParameter("regexToIgnoreOnColorComputing");
+        try {
+            if (ignoreRegex != null && !ignoreRegex.isEmpty()) {
+                Pattern.compile(ignoreRegex);
+            }
+        } catch (PatternSyntaxException e) {
+            throw new FormException(
+                    "Invalid regular expression for aggregate status.", e, "regexToIgnoreOnColorComputing");
+        }
+        List<CategorizationCriteria> criteria = Descriptor.newInstancesFromHeteroList(
+                req, req.getSubmittedForm(), "categorizationCriteria", CategorizationCriteria.all());
         super.submit(req);
-        categorizationCriteria.rebuildHetero(
-                req, req.getSubmittedForm(), CategorizationCriteria.all(), "categorizationCriteria");
-        regexToIgnoreOnColorComputing = req.getParameter("regexToIgnoreOnColorComputing");
+        categorizationCriteria.replaceBy(criteria);
+        regexToIgnoreOnColorComputing = ignoreRegex;
         hideAggregatedInfoOnCategories = req.getSubmittedForm().optBoolean("hideAggregatedInfoOnCategories");
         nestedGroups = req.getSubmittedForm().optBoolean("nestedGroups");
     }
@@ -130,6 +149,10 @@ public class CategorizedJobsView extends ListView {
         @Override
         public String getDisplayName() {
             return "Categorized Jobs View";
+        }
+
+        public FormValidation doCheckRegexToIgnoreOnColorComputing(@QueryParameter final String value) {
+            return doCheckIncludeRegex(value);
         }
 
         public FormValidation doCheckIncludeRegex(@QueryParameter final String value) {

@@ -2,13 +2,58 @@ package org.jenkinsci.plugins.categorizedview;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import hudson.model.Descriptor.FormException;
 import hudson.model.TopLevelItem;
+import hudson.util.FormValidation;
+import net.sf.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 class GroupingRuleTest {
+
+    @Test
+    void invalidLegacyRulesShouldLeaveItemsUngrouped() {
+        TopLevelItem item = mock(TopLevelItem.class);
+        when(item.getName()).thenReturn("first");
+        for (String[] rule :
+                new String[][] {{"[", "$1"}, {"first", "$2"}, {"first", "${missing}"}, {"first", "$"}, {"first", "\\"}
+                }) {
+            GroupingRule subject = new GroupingRule(rule[0], rule[1]);
+            assertNull(subject.groupNameGivenItem(item));
+            assertNull(subject.groupNameGivenItem(item));
+        }
+    }
+
+    @Test
+    void validationShouldCheckReferencesWithoutNeedingAMatchingJob() throws Exception {
+        var descriptor = new GroupingRule.DescriptorImpl();
+        assertEquals(FormValidation.Kind.ERROR, descriptor.doCheckGroupRegex("[", "$1").kind);
+        for (String replacement : new String[] {"$2", "${missing}", "$", "\\"}) {
+            assertEquals(FormValidation.Kind.ERROR, descriptor.doCheckNamingRule(replacement, "(?<name>first)").kind);
+            JSONObject form = new JSONObject();
+            form.put("groupRegex", "(?<name>first)");
+            form.put("namingRule", replacement);
+            assertThrows(
+                    FormException.class,
+                    () -> descriptor.newInstance((org.kohsuke.stapler.StaplerRequest2) null, form));
+        }
+        for (String replacement : new String[] {"", "$0", "$1", "$12", "${name}", "\\$1", "\\\\"}) {
+            assertEquals(FormValidation.Kind.OK, descriptor.doCheckNamingRule(replacement, "(?<name>first)").kind);
+        }
+    }
+
+    @Test
+    void namedAndEscapedReplacementsShouldKeepJavaSemantics() {
+        TopLevelItem item = mock(TopLevelItem.class);
+        when(item.getName()).thenReturn("first");
+        assertEquals("first2", new GroupingRule("(?<name>first)", "$12").groupNameGivenItem(item));
+        assertEquals("first", new GroupingRule("(?<name>first)", "${name}").groupNameGivenItem(item));
+        assertEquals("$1", new GroupingRule("first", "\\$1").groupNameGivenItem(item));
+    }
 
     @Test
     void regexShouldNotBeNormalizedIfNotNeeded() {
