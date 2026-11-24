@@ -21,11 +21,16 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import jenkins.model.Jenkins;
 import org.springframework.security.access.AccessDeniedException;
 
 @SuppressWarnings("rawtypes")
 public class GroupTopLevelItem implements TopLevelItem {
+    private static final Logger LOGGER = Logger.getLogger(GroupTopLevelItem.class.getName());
     private final String groupName;
     private final String displayName;
 
@@ -34,7 +39,7 @@ public class GroupTopLevelItem implements TopLevelItem {
     private GroupTopLevelItem parentGroup;
     protected List<TopLevelItem> nestedItems = new ArrayList<>();
 
-    private String regexToIgnoreOnColorComputing;
+    private final Pattern ignorePattern;
     private List<TopLevelItem> sortedItems;
     private BallColor iconColor;
     private HealthReport buildHealth;
@@ -46,12 +51,27 @@ public class GroupTopLevelItem implements TopLevelItem {
 
     public GroupTopLevelItem(
             final String groupLabel, final String displayName, final String regexToIgnoreOnColorComputing) {
+        this(groupLabel, displayName, compileIgnorePattern(regexToIgnoreOnColorComputing));
+    }
+
+    GroupTopLevelItem(final String groupLabel, final String displayName, final Pattern ignorePattern) {
         groupName = groupLabel;
         this.displayName = displayName;
-        this.regexToIgnoreOnColorComputing = regexToIgnoreOnColorComputing;
+        this.ignorePattern = ignorePattern;
         this.nestLevel = 0;
         this.groupClass = "g_" + groupLabel.replaceAll("[^a-zA-Z0-9_]", "_") + groupLabel.hashCode();
         this.specificCss.append("font-weight:bold;");
+    }
+
+    static Pattern compileIgnorePattern(final String regex) {
+        try {
+            if (regex != null && !regex.isEmpty()) {
+                return Pattern.compile(regex);
+            }
+        } catch (PatternSyntaxException e) {
+            LOGGER.log(Level.WARNING, "Invalid aggregate-ignore regex; no jobs will be excluded: " + regex, e);
+        }
+        return null;
     }
 
     @Override
@@ -117,7 +137,8 @@ public class GroupTopLevelItem implements TopLevelItem {
         BallColor colorState = BallColor.NOTBUILT;
         for (TopLevelItem item : getAggregationItems()) {
             if (item instanceof Job) {
-                if (item.getName().matches(regexToIgnoreOnColorComputing)) {
+                if (ignorePattern != null
+                        && ignorePattern.matcher(item.getName()).matches()) {
                     continue;
                 }
                 BallColor projectColorState = ((Job) item).getIconColor();

@@ -34,8 +34,8 @@ public class Utils {
         try {
             return Pattern.compile(regex).matcher("").groupCount() > 0;
         } catch (PatternSyntaxException e) {
-            // Invalid regex: fall back to the historical heuristic and let the real error
-            // surface when the pattern is actually used for matching.
+            // Keep normalization compatible for invalid legacy expressions; the caller
+            // handles compilation failures when preparing the rule.
             return regex.contains("(");
         }
     }

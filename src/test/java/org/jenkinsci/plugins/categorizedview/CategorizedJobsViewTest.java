@@ -2,14 +2,17 @@ package org.jenkinsci.plugins.categorizedview;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import hudson.model.BallColor;
+import hudson.util.FormValidation;
 import hudson.views.JobColumn;
 import hudson.views.StatusColumn;
 import hudson.views.WeatherColumn;
 import java.util.List;
 import jenkins.model.Jenkins;
+import org.htmlunit.FailingHttpStatusCodeException;
 import org.htmlunit.html.HtmlCheckBoxInput;
 import org.htmlunit.html.HtmlForm;
 import org.htmlunit.html.HtmlPage;
@@ -19,6 +22,83 @@ import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 @WithJenkins
 class CategorizedJobsViewTest {
+
+    @Test
+    void submittingInvalidExpressionsShouldLeaveConfigurationUnchanged(JenkinsRule r) throws Exception {
+        CategorizedJobsView subject = new CategorizedJobsView("Validation");
+        r.jenkins.addView(subject);
+        subject.getCategorizationCriteria().add(new GroupingRule("first", "$1"));
+        for (String[] invalid : new String[][] {
+            {"regexToIgnoreOnColorComputing", "["}, {"groupRegex", "["}, {"namingRule", "${missing}"}
+        }) {
+            HtmlForm form =
+                    r.createWebClient().goTo("view/Validation/configure").getFormByName("viewConfig");
+            form.<HtmlCheckBoxInput>getInputByName("_.recurse").setChecked(true);
+            form.getInputByName(invalid[0]).setValue(invalid[1]);
+            var error = assertThrows(FailingHttpStatusCodeException.class, () -> r.submit(form));
+            assertEquals(400, error.getStatusCode());
+            assertFalse(subject.isRecurse());
+        }
+        assertEquals("", subject.getRegexToIgnoreOnColorComputing());
+        assertEquals(
+                "first", ((GroupingRule) subject.getCategorizationCriteria().get(0)).getGroupRegex());
+    }
+
+    @Test
+    void aggregateIgnoreValidationShouldRejectMalformedRegex(JenkinsRule r) {
+        var descriptor = r.jenkins.getDescriptorByType(CategorizedJobsView.DescriptorImpl.class);
+        assertEquals(FormValidation.Kind.ERROR, descriptor.doCheckRegexToIgnoreOnColorComputing("[").kind);
+        assertEquals(FormValidation.Kind.OK, descriptor.doCheckRegexToIgnoreOnColorComputing("").kind);
+        assertEquals(FormValidation.Kind.OK, descriptor.doCheckRegexToIgnoreOnColorComputing(".*ignore.*").kind);
+    }
+
+    @Test
+    void aggregateIgnorePatternShouldFollowConfigurationChanges(JenkinsRule r) throws Exception {
+        CategorizedJobsView subject = new CategorizedJobsView("Ignore-pattern");
+        r.jenkins.addView(subject);
+        var project = r.createFreeStyleProject("job");
+        r.buildAndAssertSuccess(project);
+        subject.add(project);
+        subject.getCategorizationCriteria().add(new GroupingRule("job", "Group"));
+
+        for (String regex : new String[] {"job", "", "job"}) {
+            HtmlForm form =
+                    r.createWebClient().goTo("view/Ignore-pattern/configure").getFormByName("viewConfig");
+            form.getInputByName("regexToIgnoreOnColorComputing").setValue(regex);
+            r.submit(form);
+            for (int render = 0; render < 2; render++) {
+                GroupTopLevelItem group =
+                        (GroupTopLevelItem) subject.getGroupedItems().get(0);
+                assertEquals(regex.isEmpty() ? BallColor.BLUE : BallColor.NOTBUILT, group.getIconColor());
+            }
+        }
+    }
+
+    @Test
+    void invalidLegacyConfigurationShouldStillRender(JenkinsRule r) throws Exception {
+        CategorizedJobsView subject = (CategorizedJobsView) Jenkins.XSTREAM2.fromXML("""
+            <org.jenkinsci.plugins.categorizedview.CategorizedJobsView>
+              <name>Legacy-invalid</name>
+              <jobNames><string>first</string></jobNames>
+              <regexToIgnoreOnColorComputing>[</regexToIgnoreOnColorComputing>
+              <groupingRules>
+                <org.jenkinsci.plugins.categorizedview.GroupingRule>
+                  <groupRegex>[</groupRegex><namingRule>$1</namingRule>
+                </org.jenkinsci.plugins.categorizedview.GroupingRule>
+                <org.jenkinsci.plugins.categorizedview.GroupingRule>
+                  <groupRegex>first</groupRegex><namingRule>${missing}</namingRule>
+                </org.jenkinsci.plugins.categorizedview.GroupingRule>
+                <org.jenkinsci.plugins.categorizedview.GroupingRule>
+                  <groupRegex>first</groupRegex><namingRule>Valid</namingRule>
+                </org.jenkinsci.plugins.categorizedview.GroupingRule>
+              </groupingRules>
+            </org.jenkinsci.plugins.categorizedview.CategorizedJobsView>
+            """);
+        r.createFreeStyleProject("first");
+        r.jenkins.addView(subject);
+        assertEquals("Valid", subject.getGroupedItems().get(0).getDisplayName());
+        r.createWebClient().goTo("view/Legacy-invalid/");
+    }
 
     @Test
     void getGroupedItems_shouldSupportLegacyRulesWithAndWithoutNesting(JenkinsRule r) throws Exception {

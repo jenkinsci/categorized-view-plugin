@@ -3,9 +3,20 @@ package org.jenkinsci.plugins.categorizedview;
 import hudson.Extension;
 import hudson.model.Descriptor;
 import hudson.model.TopLevelItem;
+import hudson.util.FormValidation;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.StaplerRequest2;
 
 public class GroupingRule extends CategorizationCriteria {
+    private static final Logger LOGGER = Logger.getLogger(GroupingRule.class.getName());
+    private static final Pattern DISABLED_PATTERN = Pattern.compile("(?!)");
+    private transient Pattern compiledPattern;
     private final String groupRegex;
     private final String namingRule;
     private boolean useDisplayName = false;
@@ -35,20 +46,42 @@ public class GroupingRule extends CategorizationCriteria {
 
     @Override
     public String groupNameGivenItem(TopLevelItem item) {
-        if (!isOnGroup(item)) {
-            return null;
-        }
-
-        final String groupNamingRule = namingRule == null || namingRule.isEmpty() ? "$1" : namingRule;
-        return getItemName(item).replaceAll(getNormalizedGroupRegex(), groupNamingRule);
+        Matcher matcher = getCompiledPattern().matcher(getItemName(item));
+        return matcher.matches() ? matcher.replaceAll(effectiveNamingRule(namingRule)) : null;
     }
 
-    private boolean isOnGroup(TopLevelItem item) {
-        if (groupRegex == null || groupRegex.isEmpty()) {
-            return false;
+    private synchronized Pattern getCompiledPattern() {
+        if (compiledPattern == null) {
+            try {
+                compiledPattern = compileRule(groupRegex, namingRule);
+            } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+                // Invalid legacy rules are disabled so they cannot break view rendering.
+                compiledPattern = DISABLED_PATTERN;
+                LOGGER.log(
+                        Level.WARNING,
+                        "Disabling invalid categorization rule: regex=" + groupRegex + ", namingRule=" + namingRule,
+                        e);
+            }
         }
+        return compiledPattern;
+    }
 
-        return getItemName(item).matches(getNormalizedGroupRegex());
+    private static String effectiveNamingRule(String namingRule) {
+        return namingRule == null || namingRule.isEmpty() ? "$1" : namingRule;
+    }
+
+    private static Pattern compileRule(String groupRegex, String namingRule) {
+        if (groupRegex == null || groupRegex.isEmpty()) {
+            return DISABLED_PATTERN;
+        }
+        Pattern pattern = Pattern.compile(Utils.normalizeRegex(groupRegex));
+        // Keep a successful empty match while switching to the rule's capture groups.
+        // This lets Java validate replacement syntax and references without a sample job name.
+        Matcher validation = Pattern.compile("").matcher("");
+        validation.matches();
+        validation.usePattern(pattern);
+        validation.appendReplacement(new StringBuilder(), effectiveNamingRule(namingRule));
+        return pattern;
     }
 
     private String getItemName(TopLevelItem item) {
@@ -76,6 +109,33 @@ public class GroupingRule extends CategorizationCriteria {
 
     @Extension
     public static final class DescriptorImpl extends Descriptor<CategorizationCriteria> {
+        @Override
+        public CategorizationCriteria newInstance(StaplerRequest2 req, JSONObject formData) throws FormException {
+            try {
+                compileRule(formData.optString("groupRegex"), formData.optString("namingRule"));
+            } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+                throw new FormException("Invalid categorization regex or naming rule.", e, "groupRegex");
+            }
+            return super.newInstance(req, formData);
+        }
+
+        public FormValidation doCheckGroupRegex(@QueryParameter String value, @QueryParameter String namingRule) {
+            return validateRule(value, namingRule);
+        }
+
+        public FormValidation doCheckNamingRule(@QueryParameter String value, @QueryParameter String groupRegex) {
+            return validateRule(groupRegex, value);
+        }
+
+        private FormValidation validateRule(String groupRegex, String namingRule) {
+            try {
+                compileRule(groupRegex, namingRule);
+                return FormValidation.ok();
+            } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+                return FormValidation.error(e.getMessage());
+            }
+        }
+
         @Override
         public String getDisplayName() {
             return "Regex Grouping Rule";

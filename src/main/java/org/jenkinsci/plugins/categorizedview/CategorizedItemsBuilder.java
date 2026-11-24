@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class CategorizedItemsBuilder {
     final Comparator<TopLevelItem> comparator = new TopLevelItemComparator();
@@ -15,7 +16,7 @@ public class CategorizedItemsBuilder {
     private List<GroupTopLevelItem> groupItems = new ArrayList<>();
     private List<? extends CategorizationCriteria> groupingRules;
     private Map<String, TopLevelItem> itemsData;
-    private String regexToIgnoreOnColorComputing;
+    private final Pattern ignorePattern;
     private final boolean nestedGroups;
     private List<TopLevelItem> regroupedItems;
 
@@ -36,9 +37,17 @@ public class CategorizedItemsBuilder {
             final List<? extends CategorizationCriteria> groupingRules,
             final String regexToIgnoreOnColorComputing,
             final boolean nestedGroups) {
+        this(items, groupingRules, GroupTopLevelItem.compileIgnorePattern(regexToIgnoreOnColorComputing), nestedGroups);
+    }
+
+    CategorizedItemsBuilder(
+            final List<TopLevelItem> items,
+            final List<? extends CategorizationCriteria> groupingRules,
+            final Pattern ignorePattern,
+            final boolean nestedGroups) {
         this.itemsToCategorize = items;
         this.groupingRules = groupingRules;
-        this.regexToIgnoreOnColorComputing = regexToIgnoreOnColorComputing;
+        this.ignorePattern = ignorePattern;
         this.nestedGroups = nestedGroups;
     }
 
@@ -146,7 +155,7 @@ public class CategorizedItemsBuilder {
             final int ruleIndex) {
         boolean groupIsMissing = !groupItemByGroupName.containsKey(groupName);
         if (groupIsMissing) {
-            GroupTopLevelItem value = new GroupTopLevelItem(groupName, displayName, regexToIgnoreOnColorComputing);
+            GroupTopLevelItem value = new GroupTopLevelItem(groupName, displayName, ignorePattern);
             groupItems.add(value);
             groupItemByGroupName.put(groupName, value);
             if (parentGroup == null) {
