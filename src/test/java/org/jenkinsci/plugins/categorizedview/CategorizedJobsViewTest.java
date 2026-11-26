@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import hudson.model.BallColor;
+import hudson.model.FreeStyleProject;
 import hudson.util.FormValidation;
 import hudson.views.JobColumn;
 import hudson.views.StatusColumn;
@@ -18,6 +19,7 @@ import org.htmlunit.html.HtmlForm;
 import org.htmlunit.html.HtmlPage;
 import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.MockFolder;
 import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 @WithJenkins
@@ -240,5 +242,22 @@ class CategorizedJobsViewTest {
         assertTrue(configured.isColumnVisibleOnCategoryHeader(new JobColumn()));
         assertFalse(configured.isColumnVisibleOnCategoryHeader(new StatusColumn()));
         assertFalse(configured.isColumnVisibleOnCategoryHeader(new WeatherColumn()));
+    }
+
+    @Test
+    void groupHeader_inNestedFolder_shouldShowOnlyGroupName(JenkinsRule r) throws Exception {
+        MockFolder folder = r.createFolder("TeamA").createProject(MockFolder.class, "ProjectX");
+        CategorizedJobsView view = new CategorizedJobsView("my-view", folder);
+        folder.addView(view);
+        view.add(folder.createProject(FreeStyleProject.class, "app-build-backend"));
+        view.getCategorizationCriteria().add(new GroupingRule("app-build-.*", "app-build"));
+        view.getColumns().clear();
+        view.getColumns().add(new IndentedJobColumn());
+        view.getColumns().add(new JobColumn());
+
+        HtmlPage page = r.createWebClient().goTo("job/TeamA/job/ProjectX/view/my-view/");
+        String header = page.getHtmlElementById("category_app-build").asNormalizedText();
+        assertTrue(header.contains("app-build"), header);
+        assertFalse(header.contains(".."), header);
     }
 }

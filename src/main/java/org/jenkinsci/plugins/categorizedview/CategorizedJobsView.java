@@ -53,11 +53,19 @@ public class CategorizedJobsView extends ListView {
     public List<TopLevelItem> getGroupedItems() {
         CategorizedItemsBuilder categorizedItemsBuilder;
         if (categorizationCriteria == null) {
-            categorizedItemsBuilder =
-                    new CategorizedItemsBuilder(super.getItems(), groupingRules, getIgnorePattern(), nestedGroups);
+            categorizedItemsBuilder = new CategorizedItemsBuilder(
+                    super.getItems(),
+                    groupingRules,
+                    getIgnorePattern(),
+                    nestedGroups,
+                    getOwner().getItemGroup());
         } else {
             categorizedItemsBuilder = new CategorizedItemsBuilder(
-                    super.getItems(), categorizationCriteria.toList(), getIgnorePattern(), nestedGroups);
+                    super.getItems(),
+                    categorizationCriteria.toList(),
+                    getIgnorePattern(),
+                    nestedGroups,
+                    getOwner().getItemGroup());
         }
 
         return categorizedItemsBuilder.getRegroupedItems();

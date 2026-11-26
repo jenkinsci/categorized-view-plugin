@@ -33,6 +33,8 @@ public class GroupTopLevelItem implements TopLevelItem {
     private static final Logger LOGGER = Logger.getLogger(GroupTopLevelItem.class.getName());
     private final String groupName;
     private final String displayName;
+    // The view's owner, so relative names of the header row resolve against the view's folder.
+    private final ItemGroup<? extends Item> parent;
 
     private int nestLevel;
     private final String groupClass;
@@ -51,12 +53,17 @@ public class GroupTopLevelItem implements TopLevelItem {
 
     public GroupTopLevelItem(
             final String groupLabel, final String displayName, final String regexToIgnoreOnColorComputing) {
-        this(groupLabel, displayName, compileIgnorePattern(regexToIgnoreOnColorComputing));
+        this(groupLabel, displayName, compileIgnorePattern(regexToIgnoreOnColorComputing), null);
     }
 
-    GroupTopLevelItem(final String groupLabel, final String displayName, final Pattern ignorePattern) {
+    GroupTopLevelItem(
+            final String groupLabel,
+            final String displayName,
+            final Pattern ignorePattern,
+            final ItemGroup<? extends Item> parent) {
         groupName = groupLabel;
         this.displayName = displayName;
+        this.parent = parent;
         this.ignorePattern = ignorePattern;
         this.nestLevel = 0;
         this.groupClass = "g_" + groupLabel.replaceAll("[^a-zA-Z0-9_]", "_") + groupLabel.hashCode();
@@ -308,8 +315,8 @@ public class GroupTopLevelItem implements TopLevelItem {
     }
 
     @Override
-    public Jenkins getParent() {
-        return Jenkins.get();
+    public ItemGroup<? extends Item> getParent() {
+        return parent != null ? parent : Jenkins.get();
     }
 
     @Override
