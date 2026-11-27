@@ -43,7 +43,7 @@ public class CategorizedItemsBuilder {
         this(
                 items,
                 groupingRules,
-                GroupTopLevelItem.compileIgnorePattern(regexToIgnoreOnColorComputing),
+                CategoryGroup.compileIgnorePattern(regexToIgnoreOnColorComputing),
                 nestedGroups,
                 null);
     }

@@ -5,22 +5,37 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.synopsys.arc.jenkins.plugins.ownership.jobs.JobOwnerColumn;
 import hudson.model.BallColor;
 import hudson.model.FreeStyleProject;
+import hudson.model.Result;
+import hudson.model.TopLevelItem;
 import hudson.util.FormValidation;
+import hudson.views.BuildButtonColumn;
 import hudson.views.JobColumn;
+import hudson.views.LastDurationColumn;
+import hudson.views.LastFailureColumn;
+import hudson.views.LastSuccessColumn;
+import hudson.views.ListViewColumn;
+import hudson.views.ListViewColumnDescriptor;
 import hudson.views.StatusColumn;
 import hudson.views.WeatherColumn;
 import java.util.List;
+import java.util.Locale;
 import jenkins.model.Jenkins;
 import org.htmlunit.FailingHttpStatusCodeException;
+import org.htmlunit.html.HtmlButton;
 import org.htmlunit.html.HtmlCheckBoxInput;
 import org.htmlunit.html.HtmlForm;
 import org.htmlunit.html.HtmlPage;
+import org.htmlunit.html.HtmlTableCell;
 import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.FailureBuilder;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.MockFolder;
+import org.jvnet.hudson.test.TestExtension;
 import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
+import org.jvnet.localizer.LocaleProvider;
 
 @WithJenkins
 class CategorizedJobsViewTest {
@@ -166,9 +181,14 @@ class CategorizedJobsViewTest {
         var child = page.getHtmlElementById("category_FootLocker/FLX User");
         var parentContents = page.getHtmlElementById("jobNestedItems_FootLocker");
         var childContents = page.getHtmlElementById("jobNestedItems_FootLocker/FLX User");
+        HtmlButton parentToggle = parent.getFirstByXPath("./td/button");
+        assertEquals("button", parentToggle.getTypeAttribute());
+        assertTrue(parentToggle.getAttribute("aria-label").contains("FootLocker"));
+        assertEquals("false", parentToggle.getAttribute("aria-expanded"));
         assertTrue(parentContents.getAttribute("style").contains("display: none"));
         assertTrue(childContents.getAttribute("style").contains("display: none"));
-        parent.click();
+        parentToggle.click();
+        assertEquals("true", parentToggle.getAttribute("aria-expanded"));
         child.click();
         assertTrue(page.getHtmlElementById("category_FootLocker/FLX User/Build")
                 .asNormalizedText()
@@ -186,6 +206,14 @@ class CategorizedJobsViewTest {
         assertTrue(childContents.getAttribute("style").contains("display: none"));
 
         HtmlPage reloaded = client.goTo("view/Categories/");
+        assertEquals(
+                "true",
+                reloaded.<HtmlButton>getFirstByXPath("//tr[@id='category_FootLocker']/td/button")
+                        .getAttribute("aria-expanded"));
+        assertEquals(
+                "false",
+                reloaded.<HtmlButton>getFirstByXPath("//tr[@id='category_FootLocker/FLX User']/td/button")
+                        .getAttribute("aria-expanded"));
         assertFalse(reloaded.getHtmlElementById("jobNestedItems_FootLocker")
                 .getAttribute("style")
                 .contains("display: none"));
@@ -217,13 +245,22 @@ class CategorizedJobsViewTest {
     }
 
     @Test
-    void isColumnVisibleOnCategoryHeader_whenNotHidden_shouldShowAllColumns(JenkinsRule r) {
+    void isColumnVisibleOnCategoryHeader_whenNotHidden_shouldShowSupportedColumns(JenkinsRule r) {
         CategorizedJobsView subject = new CategorizedJobsView("Categories");
 
         assertTrue(subject.isColumnVisibleOnCategoryHeader(new IndentedJobColumn()));
         assertTrue(subject.isColumnVisibleOnCategoryHeader(new JobColumn()));
         assertTrue(subject.isColumnVisibleOnCategoryHeader(new StatusColumn()));
         assertTrue(subject.isColumnVisibleOnCategoryHeader(new WeatherColumn()));
+        assertTrue(subject.isColumnVisibleOnCategoryHeader(new LastSuccessColumn()));
+        assertTrue(subject.isColumnVisibleOnCategoryHeader(new LastFailureColumn()));
+        assertTrue(subject.isColumnVisibleOnCategoryHeader(new LastDurationColumn()));
+        assertTrue(subject.isColumnVisibleOnCategoryHeader(new JobOwnerColumn()));
+        assertFalse(subject.isColumnVisibleOnCategoryHeader(new BuildButtonColumn()));
+        assertFalse(subject.isColumnVisibleOnCategoryHeader(new UnsupportedColumn()));
+        assertFalse(subject.isColumnVisibleOnCategoryHeader(new StatusColumn() {}));
+        assertFalse(subject.isWeatherColumnOnCategoryHeader(new WeatherColumn() {}));
+        assertFalse(subject.isNameOnlyColumnOnCategoryHeader(new JobColumn() {}));
     }
 
     @Test
@@ -259,5 +296,169 @@ class CategorizedJobsViewTest {
         String header = page.getHtmlElementById("category_app-build").asNormalizedText();
         assertTrue(header.contains("app-build"), header);
         assertFalse(header.contains(".."), header);
+    }
+
+    @Test
+    void weatherOnCategoryHeaderShouldNotLinkToBuild(JenkinsRule r) throws Exception {
+        CategorizedJobsView subject = new CategorizedJobsView("Weather-contract");
+        r.jenkins.addView(subject);
+        FreeStyleProject job = r.createFreeStyleProject("job");
+        job.getBuildersList().add(new FailureBuilder());
+        r.buildAndAssertStatus(Result.FAILURE, job);
+        assertEquals(0, job.getBuildHealth().getScore());
+        subject.add(job);
+        subject.getCategorizationCriteria().add(new GroupingRule("job", "Parent/Child"));
+        subject.getColumns().replaceBy(List.of(new JobColumn(), new WeatherColumn()));
+
+        JenkinsRule.WebClient client = r.createWebClient();
+        HtmlForm form = client.goTo("view/Weather-contract/configure").getFormByName("viewConfig");
+        form.<HtmlCheckBoxInput>getInputByName("_.nestedGroups").setChecked(true);
+        r.submit(form);
+
+        HtmlPage page = client.goTo("view/Weather-contract/");
+        for (String group : List.of("Parent", "Parent/Child")) {
+            HtmlTableCell weather = page.getHtmlElementById("category_" + group)
+                    .getFirstByXPath("./td[contains(@class,'healthReport')]");
+            assertEquals("0", weather.getAttribute("data"));
+        }
+        assertEquals(
+                0,
+                page.getByXPath("//tr[@categoryRole='category']//a[contains(@href,'lastBuild')]")
+                        .size());
+    }
+
+    @Test
+    void weatherShouldRespectHiddenAggregatedInfo(JenkinsRule r) throws Exception {
+        CategorizedJobsView subject = new CategorizedJobsView("Weather-hidden");
+        r.jenkins.addView(subject);
+        subject.add(r.createFreeStyleProject("job"));
+        subject.getCategorizationCriteria().add(new GroupingRule("job", "Parent"));
+        subject.getColumns().replaceBy(List.of(new JobColumn(), new WeatherColumn()));
+        HtmlForm form =
+                r.createWebClient().goTo("view/Weather-hidden/configure").getFormByName("viewConfig");
+        form.<HtmlCheckBoxInput>getInputByName("_.hideAggregatedInfoOnCategories")
+                .setChecked(true);
+        r.submit(form);
+
+        HtmlPage page = r.createWebClient().goTo("view/Weather-hidden/");
+        assertEquals(
+                0,
+                page.getByXPath("//tr[@categoryRole='category']/td[contains(@class,'healthReport')]")
+                        .size());
+    }
+
+    @Test
+    void buildColumnsShouldNotLinkFromCategoryRows(JenkinsRule r) throws Exception {
+        CategorizedJobsView subject = new CategorizedJobsView("Build-columns");
+        r.jenkins.addView(subject);
+        FreeStyleProject job = r.createFreeStyleProject("job");
+        job.getBuildersList().add(new FailureBuilder());
+        r.buildAndAssertStatus(Result.FAILURE, job);
+        job.getBuildersList().clear();
+        r.buildAndAssertSuccess(job);
+        subject.add(job);
+        subject.getCategorizationCriteria().add(new GroupingRule("job", "Parent"));
+        subject.getColumns().replaceBy(List.of(new JobColumn(), new LastSuccessColumn(), new LastFailureColumn()));
+
+        HtmlPage page = r.createWebClient().goTo("view/Build-columns/");
+        assertEquals(
+                0,
+                page.getByXPath(
+                                "//tr[@categoryRole='category']//a[contains(@href,'lastSuccessfulBuild') or contains(@href,'lastFailedBuild')]")
+                        .size());
+        assertEquals(
+                1,
+                page.getByXPath("//tr[@id='job_job']//a[contains(@href,'lastSuccessfulBuild')]")
+                        .size());
+        assertEquals(
+                1,
+                page.getByXPath("//tr[@id='job_job']//a[contains(@href,'lastFailedBuild')]")
+                        .size());
+        String categoryText = ((org.htmlunit.html.HtmlTableRow)
+                        page.getByXPath("//tr[@categoryRole='category']").get(0))
+                .asNormalizedText();
+        assertTrue(categoryText.contains("#1"));
+        assertTrue(categoryText.contains("#2"));
+    }
+
+    @Test
+    void emptyCategoryBuildColumnsShouldUseCoreTranslations(JenkinsRule r) throws Exception {
+        CategorizedJobsView subject = new CategorizedJobsView("Build-columns");
+        r.jenkins.addView(subject);
+        subject.add(r.createFreeStyleProject("job"));
+        subject.getCategorizationCriteria().add(new GroupingRule("job", "Parent"));
+        subject.getColumns().replaceBy(List.of(new JobColumn(), new LastSuccessColumn(), new LastFailureColumn()));
+
+        LocaleProvider previous = LocaleProvider.getProvider();
+        HtmlPage page;
+        try {
+            // JenkinsRule bypasses WebAppMain, which normally derives the locale from the request.
+            LocaleProvider.setProvider(new LocaleProvider() {
+                @Override
+                public Locale get() {
+                    return Locale.GERMAN;
+                }
+            });
+            page = r.createWebClient().goTo("view/Build-columns/");
+        } finally {
+            LocaleProvider.setProvider(previous);
+        }
+        var header = page.getHtmlElementById("category_Parent");
+        assertEquals(
+                "Nicht anwendbar",
+                header.<HtmlTableCell>getFirstByXPath("./td[3]").asNormalizedText());
+        assertEquals(
+                "Unbekannt", header.<HtmlTableCell>getFirstByXPath("./td[4]").asNormalizedText());
+    }
+
+    @Test
+    void unsupportedColumnsShouldRenderOnlyForJobs(JenkinsRule r) throws Exception {
+        CategorizedJobsView subject = new CategorizedJobsView("Column-contract");
+        r.jenkins.addView(subject);
+        subject.add(r.createFreeStyleProject("job"));
+        subject.getCategorizationCriteria().add(new GroupingRule("job", "Parent/Child"));
+        subject.getColumns().replaceBy(List.of(new JobColumn(), new UnsupportedColumn()));
+        HtmlForm form =
+                r.createWebClient().goTo("view/Column-contract/configure").getFormByName("viewConfig");
+        form.<HtmlCheckBoxInput>getInputByName("_.nestedGroups").setChecked(true);
+        r.submit(form);
+
+        HtmlPage page = r.createWebClient().goTo("view/Column-contract/");
+        assertEquals(2, page.getByXPath("//tr[@categoryRole='category']").size());
+        assertEquals(0, page.getByXPath("//tr[@categoryRole='category']/td/a").size());
+        assertEquals(
+                0,
+                page.getByXPath("//tr[@categoryRole='category']/td[@class='unsupported-column']")
+                        .size());
+        assertEquals(
+                1,
+                page.getByXPath("//tr[@id='job_job']/td[@class='unsupported-column']")
+                        .size());
+        assertTrue(page.getHtmlElementById("category_Parent/Child")
+                .getTextContent()
+                .contains("Child"));
+        for (var row : page.getByXPath("//tr[@categoryRole='category']")) {
+            assertEquals(4, ((org.htmlunit.html.HtmlTableRow) row).getCells().size());
+        }
+    }
+
+    public static class UnsupportedColumn extends ListViewColumn {
+        @org.kohsuke.stapler.DataBoundConstructor
+        public UnsupportedColumn() {}
+
+        public String label(TopLevelItem item) {
+            if (item instanceof GroupTopLevelItem) {
+                throw new AssertionError("Unsupported column received a category");
+            }
+            return item.getDisplayName();
+        }
+
+        @TestExtension
+        public static class DescriptorImpl extends ListViewColumnDescriptor {
+            @Override
+            public String getDisplayName() {
+                return "Unsupported column";
+            }
+        }
     }
 }

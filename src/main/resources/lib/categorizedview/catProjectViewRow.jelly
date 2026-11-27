@@ -43,12 +43,36 @@ THE SOFTWARE.
     <st:adjunct includes="lib.categorizedview.categorized-view-row"/>
     <tr id="category_${job.name}" class="${job.disabled?'disabledJob':null} job-status-${job.iconColor.iconName} categoryJobRow" category="${job.name}" categoryRole="category" data-view="${view.getViewName()}" data-jobgroup="${view.getGroupClassFor(job)}">
       <td>
-        <span id="handle_${view.getGroupClassFor(job)}" class="section-toggle-icon">
+        <button type="button" id="handle_${view.getGroupClassFor(job)}" class="jenkins-button jenkins-button--tertiary section-toggle-icon" aria-label="${%toggleCategory(job.displayName)}" aria-expanded="false">
           <l:icon class="icon16x16" src="symbol-chevron-down" />
-        </span>
+        </button>
       </td>
       <j:forEach var="col" items="${columnExtensions}">
         <j:choose>
+          <j:when test="${view.isNameOnlyColumnOnCategoryHeader(col)}">
+            <td style="${job.css}"><l:breakable value="${job.displayName}"/></td>
+          </j:when>
+          <j:when test="${view.isWeatherColumnOnCategoryHeader(col)}">
+            <td class="jenkins-table__cell--tight jenkins-table__icon healthReport" data="${job.buildHealth.score}">
+              <div class="jenkins-table__cell__button-wrapper">
+                <l:icon src="symbol-weather-${job.buildHealth.iconClassName}" tooltip="${job.buildHealth.score}%"/>
+              </div>
+            </td>
+          </j:when>
+          <j:when test="${view.isLastSuccessColumnOnCategoryHeader(col) and job.lastSuccessfulBuild != null}">
+            <j:set var="lastBuild" value="${job.lastSuccessfulBuild}"/>
+            <td data="${lastBuild.timestampString2}">
+              ${lastBuild.timestampString}
+              ${lastBuild.displayName}
+            </td>
+          </j:when>
+          <j:when test="${view.isLastFailureColumnOnCategoryHeader(col) and job.lastFailedBuild != null}">
+            <j:set var="lastBuild" value="${job.lastFailedBuild}"/>
+            <td data="${lastBuild.timestampString2}">
+              ${lastBuild.timestampString}
+              ${lastBuild.displayName}
+            </td>
+          </j:when>
           <j:when test="${view.isColumnVisibleOnCategoryHeader(col)}">
             <st:include page="column.jelly" it="${col}"/>
           </j:when>

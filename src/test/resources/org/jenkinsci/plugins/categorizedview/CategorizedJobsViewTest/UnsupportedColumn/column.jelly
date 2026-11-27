@@ -1,0 +1,4 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core">
+  <td class="unsupported-column">${it.label(job)}</td>
+</j:jelly>
