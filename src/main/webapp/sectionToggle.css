@@ -11,7 +11,7 @@
     transition: var(--standard-transition);
   }
 
-  &[collapseState="collapsed"] {
+  &[aria-expanded="false"] {
     &:active {
       svg {
         translate: 0 0.125rem;
@@ -19,7 +19,7 @@
     }
   }
 
-  &[collapseState="expanded"] {
+  &[aria-expanded="true"] {
     svg {
       rotate: -180deg;
     }

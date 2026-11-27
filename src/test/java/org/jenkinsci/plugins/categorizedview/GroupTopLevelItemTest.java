@@ -17,6 +17,7 @@ import hudson.model.Job;
 import hudson.model.TopLevelItem;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -39,24 +40,101 @@ class GroupTopLevelItemTest {
     void nestedGroups_shouldAggregateDescendantJobs() {
         GroupTopLevelItem child = new GroupTopLevelItem("Child", ".*ignore-me.*");
         GroupTopLevelItem grandchild = new GroupTopLevelItem("Child/Grandchild", ".*ignore-me.*");
-        subject.add(child);
         child.add(grandchild);
-        subject.add(makeProjectWithColor(BallColor.BLUE));
+        child.add(makeProjectWithColor(BallColor.BLUE));
         grandchild.add(makeProjectWithColor(BallColor.YELLOW));
         grandchild.add(makeProjectWithColor(BallColor.RED, "ignore-me"));
-        assertEquals(BallColor.YELLOW, subject.getIconColor());
+        assertEquals(BallColor.YELLOW, child.getIconColor());
 
-        grandchild.nestedItems.clear();
-        child.add(makeProjectWithHealth(80));
-        grandchild.add(makeProjectWithHealth(30));
-        assertEquals(30, child.getBuildHealth().getScore());
+        GroupTopLevelItem healthChild = new GroupTopLevelItem("Health", "");
+        GroupTopLevelItem healthGrandchild = new GroupTopLevelItem("Health/Grandchild", "");
+        healthChild.add(healthGrandchild);
+        healthChild.add(makeProjectWithHealth(80));
+        healthGrandchild.add(makeProjectWithHealth(30));
+        assertEquals(30, healthChild.getBuildHealth().getScore());
 
-        grandchild.nestedItems.clear();
-        grandchild.add(makeProjectWithLastBuildDate(ZonedDateTime.parse("2014-03-30T18:00:00-03:00")));
-        subject.add(makeProjectWithLastBuildDate(ZonedDateTime.parse("2014-03-28T18:00:00-03:00")));
-
+        GroupTopLevelItem buildChild = new GroupTopLevelItem("Build", "");
+        GroupTopLevelItem buildGrandchild = new GroupTopLevelItem("Build/Grandchild", "");
+        buildChild.add(buildGrandchild);
+        buildGrandchild.add(makeProjectWithLastBuildDate(ZonedDateTime.parse("2014-03-30T18:00:00-03:00")));
+        buildChild.add(makeProjectWithLastBuildDate(ZonedDateTime.parse("2014-03-28T18:00:00-03:00")));
         assertEquals(
-                "2014-03-30T18:00:00-03:00", dateString(subject.getLastBuild().getTimestamp()));
+                "2014-03-30T18:00:00-03:00",
+                dateString(buildChild.getLastBuild().getTimestamp()));
+    }
+
+    @Test
+    void nestedItemsShouldKeepInsertionOrderWhileReadApisAreSorted() {
+        subject.add(makeMockProject("z"));
+        subject.add(makeMockProject("a"));
+        assertEquals(
+                List.of("z", "a"),
+                subject.nestedItems.stream().map(TopLevelItem::getName).toList());
+        assertEquals(
+                List.of("a", "z"),
+                subject.getNestedItems().stream().map(TopLevelItem::getName).toList());
+        assertEquals(
+                List.of("a", "z"),
+                subject.getGroupItems().stream().map(TopLevelItem::getName).toList());
+    }
+
+    @Test
+    void groupShouldUseMembershipListAssignedBySubclass() {
+        TopLevelItem first = makeMockProject("first");
+        TopLevelItem second = makeMockProject("second");
+        GroupTopLevelItem group = new GroupTopLevelItem("Group", "") {
+            {
+                nestedItems = new ArrayList<>(List.of(first));
+            }
+        };
+
+        assertEquals(List.of(first), group.getNestedItems());
+        group.add(second);
+        assertEquals(List.of(first, second), group.getNestedItems());
+    }
+
+    @Test
+    void aggregationShouldUseSubclassHooks() {
+        TopLevelItem job =
+                makeProjectWithColorHealthAndBuild(BallColor.RED, 20, ZonedDateTime.parse("2014-03-30T18:00:00-03:00"));
+        GroupTopLevelItem child = new GroupTopLevelItem("Child", "") {
+            @Override
+            public List<TopLevelItem> getNestedItems() {
+                return List.of(job);
+            }
+        };
+        GroupTopLevelItem parent = new GroupTopLevelItem("Parent", "") {
+            @Override
+            public List<TopLevelItem> getNestedItems() {
+                return List.of(child);
+            }
+
+            @Override
+            public BallColor chooseNextColor(BallColor current, BallColor next) {
+                return next == BallColor.RED ? BallColor.YELLOW : current;
+            }
+        };
+
+        assertEquals(BallColor.YELLOW, parent.getIconColor());
+        assertEquals(20, parent.getBuildHealth().getScore());
+        assertEquals(((Job<?, ?>) job).getLastBuild(), parent.getLastBuild());
+    }
+
+    @Test
+    void healthReportsShouldContainTheBuildHealth() {
+        FreeStyleProject project = makeProjectWithHealth(80);
+        subject.add(project);
+        assertEquals(List.of(project.getBuildHealth()), subject.getBuildHealthReports());
+
+        HealthReport overridden = new HealthReport();
+        overridden.setScore(30);
+        GroupTopLevelItem group = new GroupTopLevelItem("Group", "") {
+            @Override
+            public HealthReport getBuildHealth() {
+                return overridden;
+            }
+        };
+        assertEquals(List.of(overridden), group.getBuildHealthReports());
     }
 
     @Test

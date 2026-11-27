@@ -1,6 +1,6 @@
 function restoreJobGroupCollapseState(viewName, groupName) {
     var collapseState = getGroupState(viewName, groupName);
-    handle = document.querySelector("#handle_" + groupName);
+    var handle = document.querySelector("#handle_" + groupName);
     if (collapseState == 'none') {
         hideJobGroup(handle, viewName, groupName)
     } else {
@@ -10,7 +10,7 @@ function restoreJobGroupCollapseState(viewName, groupName) {
 
 function toggleJobGroupVisibility(viewName, group) {
     var handle = document.querySelector("#handle_" + group);
-    if (handle.getAttribute("collapseState") == "collapsed") {
+    if (handle.getAttribute("aria-expanded") == "false") {
         showJobGroup(handle, viewName, group)
     } else {
         hideJobGroup(handle, viewName, group)
@@ -18,7 +18,7 @@ function toggleJobGroupVisibility(viewName, group) {
 }
 
 function hideJobGroup(handle, viewName, group) {
-    handle.setAttribute("collapseState", "collapsed");
+    handle.setAttribute("aria-expanded", "false");
     document.querySelectorAll('.' + group).forEach(
         function (e) {
             e.style.display = "none";
@@ -28,7 +28,7 @@ function hideJobGroup(handle, viewName, group) {
 }
 
 function showJobGroup(handle, viewName, group) {
-    handle.setAttribute("collapseState", "expanded");
+    handle.setAttribute("aria-expanded", "true");
     document.querySelectorAll('.' + group).forEach(
         function (e) {
             e.style.display = "";

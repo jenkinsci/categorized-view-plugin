@@ -76,3 +76,18 @@ rules targeting the same path share a group. Empty path segments are treated as 
 literal category name. Nesting is disabled by default, preserving existing names containing `/`.
 
 ![Nested categories with three grouping levels](docs/images/nested-groups.png)
+
+### Category header columns
+
+Category headers support the Job and Indented Job labels, Status, Weather, Last Success,
+Last Failure, and Last Duration columns. Summaries include descendant jobs; the status-ignore
+expression affects only status color. Build columns use the most recent matching descendant
+build, and Weather uses the lowest descendant health score. The optional Ownership plugin's
+Primary Owner column shows a shared primary owner, ignoring unowned jobs.
+
+Other columns, including build actions and subclasses of the supported columns, render an
+empty cell on category headers and continue rendering normally on job rows. Hiding aggregated
+information leaves only the label columns.
+`GroupTopLevelItem` remains a compatibility adapter for these supported columns; categories
+are transient display rows with no item page, persisted configuration, or build actions.
+Group membership and aggregate calculations reside in `CategoryGroup`.

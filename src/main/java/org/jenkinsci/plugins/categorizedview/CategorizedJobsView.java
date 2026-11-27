@@ -12,7 +12,12 @@ import hudson.model.ViewGroup;
 import hudson.util.DescribableList;
 import hudson.util.FormValidation;
 import hudson.views.JobColumn;
+import hudson.views.LastDurationColumn;
+import hudson.views.LastFailureColumn;
+import hudson.views.LastSuccessColumn;
 import hudson.views.ListViewColumn;
+import hudson.views.StatusColumn;
+import hudson.views.WeatherColumn;
 import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -74,7 +79,7 @@ public class CategorizedJobsView extends ListView {
     private synchronized Pattern getIgnorePattern() {
         String regex = getRegexToIgnoreOnColorComputing();
         if (!regex.equals(compiledIgnoreRegex)) {
-            ignorePattern = GroupTopLevelItem.compileIgnorePattern(regex);
+            ignorePattern = CategoryGroup.compileIgnorePattern(regex);
             // Remember invalid expressions too, so rebuilding groups does not repeat the warning.
             compiledIgnoreRegex = regex;
         }
@@ -146,10 +151,37 @@ public class CategorizedJobsView extends ListView {
         return nestedGroups;
     }
 
-    // When aggregated info is hidden, the name columns stay visible on category headers
-    // so a category remains identifiable; all other columns render as empty cells.
+    public boolean isNameOnlyColumnOnCategoryHeader(final ListViewColumn column) {
+        return column.getClass() == JobColumn.class;
+    }
+
+    public boolean isWeatherColumnOnCategoryHeader(final ListViewColumn column) {
+        return column.getClass() == WeatherColumn.class && isColumnVisibleOnCategoryHeader(column);
+    }
+
+    public boolean isLastSuccessColumnOnCategoryHeader(final ListViewColumn column) {
+        return column.getClass() == LastSuccessColumn.class && isColumnVisibleOnCategoryHeader(column);
+    }
+
+    public boolean isLastFailureColumnOnCategoryHeader(final ListViewColumn column) {
+        return column.getClass() == LastFailureColumn.class && isColumnVisibleOnCategoryHeader(column);
+    }
+
     public boolean isColumnVisibleOnCategoryHeader(final ListViewColumn column) {
-        return !hideAggregatedInfoOnCategories || column instanceof IndentedJobColumn || column instanceof JobColumn;
+        Class<?> type = column.getClass();
+        if (type == JobColumn.class || type == IndentedJobColumn.class) {
+            return true;
+        }
+        if (hideAggregatedInfoOnCategories) {
+            return false;
+        }
+        return type == StatusColumn.class
+                || type == WeatherColumn.class
+                || type == LastSuccessColumn.class
+                || type == LastFailureColumn.class
+                || type == LastDurationColumn.class
+                // Name-based check avoids linking the optional ownership plugin when it is absent.
+                || type.getName().equals("com.synopsys.arc.jenkins.plugins.ownership.jobs.JobOwnerColumn");
     }
 
     @Extension
